@@ -9,7 +9,6 @@ An Angular app for planning units in _Fire Emblem: Fortune's Weave_: pick a char
 - Class route builder: chain classes with a number of levels in each; the app shows effective growths per class and projected average stats after each step.
 - Class fit: rank every class by the unit's effective growths in the stats you care about, and add one to the route with a click.
 - Unit details: personal ability, strong and weak skills, joining class, and join stats where documented (one click fills them in).
-- Class details: weapons, movement, class and mastery skills with effects, flat stat bonuses, and unlock requirements (skill ranks, level, renown, license or item, route-specific unlocks).
 - Route warnings when a step is below the exam's recommended level, needs a skill the unit is weak in, or breaks a personal restriction (e.g. Goliath can't ride).
 - Projected stats as shown in-game: the final class's stat bonuses added and any stat caps applied.
 - Unit pictures: the selected unit shows its in-game portrait, loaded from [fortunesweave.co.uk](https://fortunesweave.co.uk/characters/) (not bundled, so it needs a connection), or a picture you upload instead (scaled down and kept in the browser). If the portrait can't load, an initials badge in the faction's colour shows.
