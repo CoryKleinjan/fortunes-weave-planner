@@ -1,7 +1,8 @@
 :host {
   display: grid;
   gap: 16px;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  // The unit panel's stat table needs more room than the route list.
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
   grid-template-areas:
     'unit route'
     'projection projection'
@@ -9,7 +10,7 @@
     'fit fit';
 }
 
-@media (max-width: 860px) {
+@media (max-width: 1100px) {
   :host {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: 'unit' 'route' 'projection' 'details' 'fit';
