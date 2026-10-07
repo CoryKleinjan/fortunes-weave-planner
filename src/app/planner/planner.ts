@@ -10,7 +10,6 @@ import {
 import { ClassTier, ClassWeapon, STAT_KEYS, STAT_LABELS, StatKey, TIERS } from '../data/models';
 import { DEFAULT_ABILITY_SLOTS, planAbilities } from './ability-plan';
 import { classWarnings, statsInClass, suitsAptitudes } from './class-checks';
-import { abilityTotals } from './final-stats';
 import { effectiveGrowths, focusScore } from './growth';
 import { UnitPortrait } from '../portrait/unit-portrait';
 import { PlannerStore } from './planner-store';
@@ -143,56 +142,6 @@ export class Planner {
   protected readonly draftLevel = signal<number | null>(null);
   private draftSource: string | undefined;
 
-  /** Abilities the user can equip in the final build: everything learned by the route's end. */
-  protected readonly finalEquipped = computed(() => {
-    const learned = new Set(this.learnedAbilities().map((a) => a.name));
-    return (this.store.plan().finalEquipped ?? []).filter((name) => learned.has(name));
-  });
-
-  /** The unit at the end of the route: grown stats, class bonuses, always-on ability bonuses, caps. */
-  protected readonly finalBuild = computed(() => {
-    const plan = this.store.plan();
-    const unit = this.store.details();
-    const steps = this.store.projection();
-    const last = steps[steps.length - 1];
-    const className =
-      last?.gameClass.name ?? plan.route[plan.route.length - 1]?.className ?? unit?.startingClass;
-    const details = className ? this.store.classDetails[className] : undefined;
-    const grown = last?.totals ?? plan.startStats;
-
-    const innate = [
-      ...(unit ? [unit.personalAbility] : []),
-      ...(details?.skills ?? []).map((name) => ({ name, effect: abilityEffect(name) })),
-    ];
-    const learned = new Map(this.learnedAbilities().map((a) => [a.name, a]));
-    const equipped = this.finalEquipped().map((name) => ({
-      name,
-      effect: learned.get(name)?.effect ?? abilityEffect(name),
-    }));
-    const abilities = abilityTotals([...innate, ...equipped]);
-
-    const beforeCaps = { ...grown };
-    for (const key of STAT_KEYS) {
-      beforeCaps[key] += (details?.baseBonuses?.[key] ?? 0) + abilities.stats[key];
-    }
-    const final = statsInClass(
-      Object.fromEntries(STAT_KEYS.map((k) => [k, grown[k] + abilities.stats[k]])) as typeof grown,
-      details,
-      plan.caps ?? {},
-    );
-    return {
-      className: className ?? 'no class',
-      level: this.finalLevel(),
-      grown,
-      classBonus: details?.baseBonuses ?? null,
-      abilities,
-      final,
-      capped: STAT_KEYS.filter((k) => final[k] < beforeCaps[k]),
-      innate: innate.map((a) => a.name),
-      other: Object.entries(abilities.other).map(([label, amount]) => `${label} +${amount}`),
-    };
-  });
-
   protected selectUnit(name: string): void {
     this.store.selectedName.set(name);
   }
@@ -304,25 +253,6 @@ export class Planner {
     this.draftLevel.set(Number.isFinite(n) && n > 0 ? n : null);
   }
 
-  protected toggleFinalEquip(name: string): void {
-    this.store.updatePlan((p) => {
-      const equipped = (p.finalEquipped ?? []).filter((n) => n !== name);
-      return {
-        ...p,
-        finalEquipped:
-          equipped.length === (p.finalEquipped ?? []).length ? [...equipped, name] : equipped,
-      };
-    });
-  }
-
-  /** Starts the final build from what's equipped on the route's last step. */
-  protected copyLastStepEquips(): void {
-    const steps = this.abilitySteps();
-    const last = steps[steps.length - 1];
-    if (!last) return;
-    this.store.updatePlan((p) => ({ ...p, finalEquipped: [...last.equipped] }));
-  }
-
   protected removeCustomAbility(name: string): void {
     this.store.updatePlan((p) => ({
       ...p,
@@ -365,12 +295,6 @@ export class Planner {
 
   protected setFitTier(value: string): void {
     this.fitTier.set(value as ClassTier | 'all');
-  }
-
-  /** "+3" for bonuses, blank for none. */
-  protected signed(value: number): string {
-    if (!value) return '';
-    return value > 0 ? `+${value}` : `${value}`;
   }
 
   protected tierLabel(tier: ClassTier): string {

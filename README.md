@@ -14,7 +14,6 @@ An Angular app for planning units in _Fire Emblem: Fortune's Weave_: pick a char
 - Projected stats as shown in-game: the final class's stat bonuses added and any stat caps applied.
 - Unit pictures: the selected unit shows its in-game portrait, loaded from [fortunesweave.co.uk](https://fortunesweave.co.uk/characters/) (not bundled, so it needs a connection), or a picture you upload instead (scaled down and kept in the browser). If the portrait can't load, an initials badge in the faction's colour shows.
 - Add abilities from the game's list: each unit's unique abilities (personal ability upgrades and Diadems) and skill abilities (weapon ranks and mount bonds), or type in any other.
-- Final build: pick the abilities equipped at the end of the route and see the full stat set with grown stats, the class's stat bonuses, always-on ability bonuses and caps applied.
 - Plans are saved per unit in the browser (localStorage).
 
 ## How the numbers work
