@@ -1,0 +1,20 @@
+<div class="frame">
+  @if (uploaded(); as src) {
+    <img [src]="src" [alt]="name()" />
+  } @else if (bundledOk()) {
+    <img [src]="bundledSrc()" [alt]="name()" (error)="bundledOk.set(false)" />
+  } @else {
+    <div class="badge" role="img" [attr.aria-label]="name()" [style.--hue]="hue()">
+      {{ initials() }}
+    </div>
+  }
+</div>
+<div class="actions">
+  <label class="upload">
+    {{ uploaded() ? 'Change picture' : 'Add picture' }}
+    <input type="file" accept="image/*" (change)="onFile($any($event.target))" />
+  </label>
+  @if (uploaded()) {
+    <button type="button" class="ghost" (click)="remove()">Remove</button>
+  }
+</div>

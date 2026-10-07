@@ -5,11 +5,12 @@ import { ClassTier, ClassWeapon, STAT_KEYS, STAT_LABELS, StatKey, TIERS } from '
 import { DEFAULT_ABILITY_SLOTS, planAbilities } from './ability-plan';
 import { classWarnings, statsInClass, suitsAptitudes } from './class-checks';
 import { effectiveGrowths, focusScore } from './growth';
+import { UnitPortrait } from '../portrait/unit-portrait';
 import { PlannerStore } from './planner-store';
 
 @Component({
   selector: 'app-planner',
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, UnitPortrait],
   templateUrl: './planner.html',
   styleUrl: './planner.scss',
 })
