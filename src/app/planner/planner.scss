@@ -292,6 +292,14 @@ h3 {
   min-width: 0;
 }
 
+.recruited-check {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 8px;
+  cursor: pointer;
+}
+
 .roster {
   list-style: none;
   padding: 0;
