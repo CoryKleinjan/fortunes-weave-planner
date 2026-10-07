@@ -232,7 +232,7 @@
               <td [class]="growthClass(p.growths[key])">{{ p.growths[key] }}%</td>
             }
           </tr>
-          <tr [class.final]="last">
+          <tr class="after-row" [class.final]="last">
             <th>after {{ p.gameClass.name }}</th>
             <td>{{ p.endLevel }}</td>
             @for (key of statKeys; track key) {

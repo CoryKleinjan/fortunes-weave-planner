@@ -100,9 +100,22 @@
     width: 48px;
     text-align: center;
   }
+  // Each class in the projection starts with its growth row; space it off the class above.
+  tbody tr.growth-row,
+  tbody tr.in-game {
+    border-top: 2px solid var(--border);
+    > * {
+      padding-top: 14px;
+    }
+  }
   .growth-row {
     font-size: 0.85em;
+  }
+  tbody tr.after-row {
     border-top: none;
+    > * {
+      padding-bottom: 10px;
+    }
   }
   .final {
     font-weight: 700;
