@@ -1,8 +1,13 @@
 <div class="frame">
   @if (uploaded(); as src) {
     <img [src]="src" [alt]="name()" />
-  } @else if (bundledOk()) {
-    <img [src]="bundledSrc()" [alt]="name()" (error)="bundledOk.set(false)" />
+  } @else if (gameOk()) {
+    <img
+      [src]="gameSrc()"
+      [alt]="name()"
+      referrerpolicy="no-referrer"
+      (error)="gameOk.set(false)"
+    />
   } @else {
     <div class="badge" role="img" [attr.aria-label]="name()" [style.--hue]="hue()">
       {{ initials() }}
