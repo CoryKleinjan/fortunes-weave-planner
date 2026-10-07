@@ -1,0 +1,158 @@
+:host {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas:
+    'unit route'
+    'projection projection'
+    'fit fit';
+}
+
+@media (max-width: 860px) {
+  :host {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'unit' 'route' 'projection' 'fit';
+  }
+}
+
+.unit {
+  grid-area: unit;
+}
+.route {
+  grid-area: route;
+}
+.projection {
+  grid-area: projection;
+}
+.fit {
+  grid-area: fit;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  min-width: 0;
+}
+
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  &.inline {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  input {
+    width: 64px;
+  }
+}
+
+.scroll {
+  overflow-x: auto;
+}
+
+.stats {
+  border-collapse: collapse;
+  width: 100%;
+  font-variant-numeric: tabular-nums;
+  th,
+  td {
+    padding: 4px 6px;
+    text-align: center;
+    white-space: nowrap;
+  }
+  tbody th {
+    text-align: left;
+    font-weight: 500;
+  }
+  thead th {
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 0.85em;
+  }
+  thead th.focus {
+    color: var(--accent);
+  }
+  tbody tr {
+    border-top: 1px solid var(--border);
+  }
+  input {
+    width: 48px;
+    text-align: center;
+  }
+  .growth-row {
+    font-size: 0.85em;
+    border-top: none;
+  }
+  .final {
+    font-weight: 700;
+  }
+}
+
+.g-high {
+  color: var(--g-high);
+  font-weight: 600;
+}
+.g-good {
+  color: var(--g-good);
+}
+.g-mid {
+  color: var(--text);
+}
+.g-low {
+  color: var(--g-low);
+}
+
+.steps {
+  padding-left: 20px;
+  li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .levels input {
+    width: 52px;
+  }
+  .step-actions {
+    display: inline-flex;
+    gap: 4px;
+  }
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin: 8px 0 12px;
+}
+
+.chip {
+  border-radius: 999px;
+  &.on {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--on-accent);
+  }
+}
+
+.muted {
+  color: var(--muted);
+}
+.hint {
+  color: var(--muted);
+  font-size: 0.85em;
+}

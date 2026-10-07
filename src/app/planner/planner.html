@@ -1,0 +1,213 @@
+@let unit = store.character();
+@let plan = store.plan();
+
+<section class="panel unit">
+  <h2>Unit</h2>
+  <label class="field">
+    <span>Character</span>
+    <select [value]="unit.name" (change)="selectUnit($any($event.target).value)">
+      @for (group of factions(); track group.faction) {
+        <optgroup [label]="group.faction">
+          @for (name of group.names; track name) {
+            <option [value]="name" [selected]="name === unit.name">
+              {{ name }}{{ store.plannedUnits().includes(name) ? ' •' : '' }}
+            </option>
+          }
+        </optgroup>
+      }
+    </select>
+  </label>
+  <p class="muted">{{ unit.faction }}</p>
+
+  <div class="scroll">
+    <table class="stats">
+      <thead>
+        <tr>
+          <th></th>
+          @for (key of statKeys; track key) {
+            <th>{{ labels[key] }}</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>Personal growth</th>
+          @for (key of statKeys; track key) {
+            <td [class]="growthClass(unit.growths[key])">{{ unit.growths[key] }}%</td>
+          }
+        </tr>
+        <tr>
+          <th>Starting stats</th>
+          @for (key of statKeys; track key) {
+            <td>
+              <input
+                type="number"
+                min="0"
+                [value]="plan.startStats[key]"
+                (change)="setStartStat(key, $any($event.target).value)"
+                [attr.aria-label]="'Starting ' + labels[key]"
+              />
+            </td>
+          }
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <label class="field inline">
+    <span>Starting level</span>
+    <input
+      type="number"
+      min="1"
+      [value]="plan.startLevel"
+      (change)="setStartLevel($any($event.target).value)"
+    />
+  </label>
+  <p class="hint">
+    Enter the unit's current stats from the game; the planner adds expected growth on top.
+  </p>
+</section>
+
+<section class="panel route">
+  <div class="panel-head">
+    <h2>Class route</h2>
+    <button type="button" class="ghost" (click)="store.resetPlan()">Reset unit</button>
+  </div>
+  <ol class="steps">
+    @for (step of plan.route; track $index; let i = $index, first = $first, last = $last) {
+      <li>
+        <select [value]="step.className" (change)="setStepClass(i, $any($event.target).value)">
+          @for (tier of classesByTier; track tier.id) {
+            <optgroup [label]="tier.label">
+              @for (c of tier.classes; track c.name) {
+                <option [value]="c.name" [selected]="c.name === step.className">
+                  {{ c.name }}
+                </option>
+              }
+            </optgroup>
+          }
+        </select>
+        <label class="levels">
+          <input
+            type="number"
+            min="0"
+            [value]="step.levels"
+            (change)="setStepLevels(i, $any($event.target).value)"
+          />
+          levels
+        </label>
+        <span class="step-actions">
+          <button type="button" (click)="moveStep(i, -1)" [disabled]="first" aria-label="Move up">
+            ↑
+          </button>
+          <button type="button" (click)="moveStep(i, 1)" [disabled]="last" aria-label="Move down">
+            ↓
+          </button>
+          <button type="button" (click)="removeStep(i)" aria-label="Remove step">✕</button>
+        </span>
+      </li>
+    }
+  </ol>
+  <button type="button" (click)="addStep()">Add class step</button>
+  <p class="muted">Ends at level {{ finalLevel() }}.</p>
+</section>
+
+<section class="panel projection">
+  <h2>Projected stats</h2>
+  <p class="hint">Average expected stats: each level adds growth% / 100 to every stat.</p>
+  <div class="scroll">
+    <table class="stats">
+      <thead>
+        <tr>
+          <th>Class</th>
+          <th>Lv</th>
+          @for (key of statKeys; track key) {
+            <th>{{ labels[key] }}</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>Start</th>
+          <td>{{ plan.startLevel }}</td>
+          @for (key of statKeys; track key) {
+            <td>{{ plan.startStats[key] }}</td>
+          }
+        </tr>
+        @for (p of store.projection(); track $index; let last = $last) {
+          <tr class="growth-row">
+            <th>{{ p.gameClass.name }} growth</th>
+            <td></td>
+            @for (key of statKeys; track key) {
+              <td [class]="growthClass(p.growths[key])">{{ p.growths[key] }}%</td>
+            }
+          </tr>
+          <tr [class.final]="last">
+            <th>after {{ p.gameClass.name }}</th>
+            <td>{{ p.endLevel }}</td>
+            @for (key of statKeys; track key) {
+              <td>{{ p.totals[key] | number: '1.0-1' }}</td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="panel fit">
+  <div class="panel-head">
+    <h2>Class fit for {{ unit.name }}</h2>
+    <select [value]="fitTier()" (change)="setFitTier($any($event.target).value)" aria-label="Tier">
+      <option value="all">All tiers</option>
+      @for (tier of tiers; track tier.id) {
+        <option [value]="tier.id">{{ tier.label }}</option>
+      }
+    </select>
+  </div>
+  <div class="chips" role="group" aria-label="Stats to prioritise">
+    <span class="muted">Rank by:</span>
+    @for (key of statKeys; track key) {
+      <button
+        type="button"
+        class="chip"
+        [class.on]="store.focus().includes(key)"
+        [attr.aria-pressed]="store.focus().includes(key)"
+        (click)="store.toggleFocus(key)"
+      >
+        {{ labels[key] }}
+      </button>
+    }
+  </div>
+  <div class="scroll">
+    <table class="stats">
+      <thead>
+        <tr>
+          <th>Class</th>
+          <th>Tier</th>
+          <th>Score</th>
+          @for (key of statKeys; track key) {
+            <th [class.focus]="store.focus().includes(key)">{{ labels[key] }}</th>
+          }
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of classFit(); track row.gameClass.name) {
+          <tr>
+            <th>{{ row.gameClass.name }}</th>
+            <td class="muted">{{ tierLabel(row.gameClass.tier) }}</td>
+            <td>
+              <strong>{{ row.score }}</strong>
+            </td>
+            @for (key of statKeys; track key) {
+              <td [class]="growthClass(row.growths[key])">{{ row.growths[key] }}</td>
+            }
+            <td>
+              <button type="button" class="ghost" (click)="addStep(row.gameClass.name)">Add</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

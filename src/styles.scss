@@ -1,0 +1,74 @@
+:root {
+  color-scheme: light dark;
+  --bg: #f6f4ef;
+  --surface: #ffffff;
+  --border: #e2ddd2;
+  --text: #24211c;
+  --muted: #6d665a;
+  --accent: #b5452b;
+  --on-accent: #ffffff;
+  --g-high: #1f7a3d;
+  --g-good: #3d7a1f;
+  --g-low: #a33a2a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17150f;
+    --surface: #221f18;
+    --border: #3a3529;
+    --text: #ece6da;
+    --muted: #a69e8e;
+    --accent: #e7795b;
+    --on-accent: #1a1209;
+    --g-high: #6fd28f;
+    --g-good: #a9d46b;
+    --g-low: #ef8a78;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+  line-height: 1.4;
+}
+
+h2 {
+  font-size: 1.1rem;
+  margin: 0 0 8px;
+}
+
+button,
+select,
+input {
+  font: inherit;
+  color: inherit;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+button {
+  cursor: pointer;
+}
+button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+button.ghost {
+  background: transparent;
+}
