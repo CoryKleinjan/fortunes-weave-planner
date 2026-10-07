@@ -203,20 +203,17 @@ export class Planner {
     this.store.updatePlan((p) => ({ ...p, abilitySlots: toInt(value, DEFAULT_ABILITY_SLOTS) }));
   }
 
-  /** Fills the add-ability form from the game's list. */
-  protected pickAbility(name: string): void {
-    const ability = catalogAbility(name);
-    if (!ability) return;
-    this.draftName.set(ability.name);
-    this.draftEffect.set(ability.effect);
-    this.draftLevel.set(ability.level ?? null);
-    this.draftSource = ability.gainedBy;
-  }
-
+  /** Picking from the list fills in the effect and level; typing something else keeps what's there. */
   protected typeDraftName(name: string): void {
     this.draftName.set(name);
-    // A hand-typed ability isn't the one picked from the list any more.
-    if (catalogAbility(name)?.gainedBy !== this.draftSource) this.draftSource = undefined;
+    const ability = catalogAbility(name);
+    if (ability) {
+      this.draftEffect.set(ability.effect);
+      this.draftLevel.set(ability.level ?? null);
+      this.draftSource = ability.gainedBy;
+    } else {
+      this.draftSource = undefined;
+    }
   }
 
   protected addCustomAbility(): void {

@@ -354,38 +354,28 @@
 
   <h3>Add an ability</h3>
   <p class="hint">
-    Pick one of {{ unit.name }}'s unique abilities or a weapon-rank or mount-bond ability, or type
-    in any other. Set the level you expect to have it by.
+    Type in the ability box to pick one of {{ unit.name }}'s unique abilities or a weapon-rank or
+    mount-bond ability, or enter any other. Set the level you expect to have it by.
   </p>
   <form class="add-ability" (submit)="$event.preventDefault(); addCustomAbility()">
-    <select
-      aria-label="Pick an ability from the game"
-      [value]="''"
-      (change)="pickAbility($any($event.target).value); $any($event.target).value = ''"
-    >
-      <option value="">Pick Abilities…</option>
-      @if (uniqueChoices().length) {
-        <optgroup [label]="'Unique to ' + unit.name">
-          @for (a of uniqueChoices(); track a.name) {
-            <option [value]="a.name">
-              {{ a.name }}{{ a.level ? ' (Lv ' + a.level + ')' : '' }}
-            </option>
-          }
-        </optgroup>
-      }
-      <optgroup label="Skill abilities (weapon ranks, mount bonds)">
-        @for (a of skillChoices; track a.name) {
-          <option [value]="a.name">{{ a.name }}</option>
-        }
-      </optgroup>
-    </select>
     <input
-      placeholder="Ability name"
+      placeholder="Pick or type an ability…"
       aria-label="Ability name"
+      list="ability-choices"
       required
       [value]="draftName()"
       (input)="typeDraftName($any($event.target).value)"
     />
+    <datalist id="ability-choices">
+      @for (a of uniqueChoices(); track a.name) {
+        <option [value]="a.name">
+          Unique to {{ unit.name }}{{ a.level ? ' · Lv ' + a.level : '' }}
+        </option>
+      }
+      @for (a of skillChoices; track a.name) {
+        <option [value]="a.name">Skill ability</option>
+      }
+    </datalist>
     <input
       placeholder="Effect (optional)"
       aria-label="Ability effect"
