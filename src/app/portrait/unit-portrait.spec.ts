@@ -1,4 +1,4 @@
-import { factionHue, initials, portraitSlug } from './unit-portrait';
+import { PORTRAIT_BASE, factionHue, initials, portraitSlug } from './unit-portrait';
 
 describe('unit portrait helpers', () => {
   it('turns names into file slugs', () => {
@@ -15,5 +15,13 @@ describe('unit portrait helpers', () => {
     expect(factionHue('Ostia')).toBe(factionHue('Ostia'));
     expect(factionHue('Ostia')).toBeGreaterThanOrEqual(0);
     expect(factionHue('Ostia')).toBeLessThan(360);
+  });
+});
+
+describe('in-game portrait URLs', () => {
+  it('match the fan site file names', () => {
+    expect(PORTRAIT_BASE + portraitSlug('Yang Jie') + '.webp').toBe(
+      'https://fortunesweave.co.uk/images/portrait/yang-jie.webp',
+    );
   });
 });

@@ -12,7 +12,7 @@ An Angular app for planning units in _Fire Emblem: Fortune's Weave_: pick a char
 - Class details: weapons, movement, class and mastery skills with effects, flat stat bonuses, and unlock requirements (skill ranks, level, renown, license or item, route-specific unlocks).
 - Route warnings when a step is below the exam's recommended level, needs a skill the unit is weak in, or breaks a personal restriction (e.g. Goliath can't ride).
 - Projected stats as shown in-game: the final class's stat bonuses added and any stat caps applied.
-- Unit pictures: the selected unit shows a picture you upload (scaled down and kept in the browser), or `public/portraits/<slug>.webp` if you add one (e.g. `sha-lan.webp`), or an initials badge in its faction's colour. No official art is bundled.
+- Unit pictures: the selected unit shows its in-game portrait, loaded from [fortunesweave.co.uk](https://fortunesweave.co.uk/characters/) (not bundled, so it needs a connection), or a picture you upload instead (scaled down and kept in the browser). If the portrait can't load, an initials badge in the faction's colour shows.
 - Plans are saved per unit in the browser (localStorage).
 
 ## How the numbers work

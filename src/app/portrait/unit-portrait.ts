@@ -1,7 +1,10 @@
 import { Component, computed, inject, input, linkedSignal } from '@angular/core';
 import { PortraitStore } from './portrait-store';
 
-/** "Sha Lan" → "sha-lan", the file name the app looks for under public/portraits/. */
+/** Where the in-game portraits are hosted; the art isn't bundled with the app. */
+export const PORTRAIT_BASE = 'https://fortunesweave.co.uk/images/portrait/';
+
+/** "Sha Lan" → "sha-lan", the portrait's file name. */
 export function portraitSlug(name: string): string {
   return name
     .toLowerCase()
@@ -26,8 +29,8 @@ export function factionHue(faction: string): number {
 }
 
 /**
- * Shows a unit's picture: one the user uploaded, else `portraits/<slug>.webp` if the
- * site ships one, else an initials badge in the faction's colour.
+ * Shows a unit's picture: one the user uploaded, else the in-game portrait from the
+ * fan site, else (offline, or the site moved it) an initials badge in the faction's colour.
  */
 @Component({
   selector: 'app-unit-portrait',
@@ -41,9 +44,9 @@ export class UnitPortrait {
   private readonly store = inject(PortraitStore);
 
   protected readonly uploaded = computed(() => this.store.pictures()[this.name()]);
-  protected readonly bundledSrc = computed(() => `portraits/${portraitSlug(this.name())}.webp`);
-  /** Resets for each unit; flips to false when the bundled file is missing. */
-  protected readonly bundledOk = linkedSignal({ source: this.name, computation: () => true });
+  protected readonly gameSrc = computed(() => `${PORTRAIT_BASE}${portraitSlug(this.name())}.webp`);
+  /** Resets for each unit; flips to false when the portrait can't be loaded. */
+  protected readonly gameOk = linkedSignal({ source: this.name, computation: () => true });
   protected readonly initials = computed(() => initials(this.name()));
   protected readonly hue = computed(() => factionHue(this.faction()));
 
