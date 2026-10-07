@@ -5,13 +5,14 @@
   grid-template-areas:
     'unit route'
     'projection projection'
+    'details details'
     'fit fit';
 }
 
 @media (max-width: 860px) {
   :host {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'unit' 'route' 'projection' 'fit';
+    grid-template-areas: 'unit' 'route' 'projection' 'details' 'fit';
   }
 }
 
@@ -26,6 +27,9 @@
 }
 .fit {
   grid-area: fit;
+}
+.details {
+  grid-area: details;
 }
 
 .panel {
@@ -155,4 +159,67 @@
 .hint {
   color: var(--muted);
   font-size: 0.85em;
+}
+
+.ability {
+  margin: 8px 0 4px;
+}
+
+.aptitudes,
+.facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 2px 12px;
+  margin: 0 0 12px;
+  font-size: 0.9em;
+  dt {
+    color: var(--muted);
+  }
+  dd {
+    margin: 0;
+  }
+}
+
+.warning {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--g-low);
+  font-size: 0.85em;
+}
+
+.in-game {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.skills {
+  padding-left: 18px;
+  margin: 0 0 12px;
+  li {
+    margin-bottom: 4px;
+  }
+}
+
+h3 {
+  font-size: 1rem;
+  margin: 8px 0 4px;
+}
+
+.tag {
+  display: inline-block;
+  font-size: 0.75em;
+  padding: 0 6px;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  margin-left: 4px;
+}
+
+button.link {
+  border: none;
+  background: none;
+  padding: 0;
+  text-align: left;
+  color: inherit;
+  text-decoration: underline dotted;
 }

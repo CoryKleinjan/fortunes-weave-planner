@@ -1,5 +1,6 @@
 @let unit = store.character();
 @let plan = store.plan();
+@let unitDetails = store.details();
 
 <section class="panel unit">
   <h2>Unit</h2>
@@ -17,7 +18,28 @@
       }
     </select>
   </label>
-  <p class="muted">{{ unit.faction }}</p>
+  <p class="muted">
+    {{ unit.faction }}
+    @if (unitDetails?.startingClass) {
+      · joins as {{ unitDetails!.startingClass }}
+    }
+  </p>
+  @if (unitDetails) {
+    <p class="ability">
+      <strong>{{ unitDetails.personalAbility.name }}</strong>
+      {{ unitDetails.personalAbility.effect }}
+    </p>
+    <dl class="aptitudes">
+      @if (unitDetails.strengths.length) {
+        <dt>Strong in</dt>
+        <dd>{{ unitDetails.strengths.join(', ') }}</dd>
+      }
+      @if (unitDetails.weaknesses.length) {
+        <dt>Weak in</dt>
+        <dd>{{ unitDetails.weaknesses.join(', ') }}</dd>
+      }
+    </dl>
+  }
 
   <div class="scroll">
     <table class="stats">
@@ -50,6 +72,21 @@
             </td>
           }
         </tr>
+        <tr>
+          <th>Stat caps</th>
+          @for (key of statKeys; track key) {
+            <td>
+              <input
+                type="number"
+                min="1"
+                placeholder="–"
+                [value]="plan.caps?.[key] ?? ''"
+                (change)="setCap(key, $any($event.target).value)"
+                [attr.aria-label]="labels[key] + ' cap'"
+              />
+            </td>
+          }
+        </tr>
       </tbody>
     </table>
   </div>
@@ -62,8 +99,17 @@
       (change)="setStartLevel($any($event.target).value)"
     />
   </label>
+  @if (unitDetails?.bases) {
+    <button type="button" class="ghost" (click)="useJoinStats()">Use join stats</button>
+  }
   <p class="hint">
     Enter the unit's current stats from the game; the planner adds expected growth on top.
+    @if (unitDetails?.bases) {
+      Join stats come from a fan wiki (join level isn't documented).
+    } @else {
+      No source documents this unit's join stats yet.
+    }
+    No source documents stat caps yet, so enter any you know and the planner will respect them.
   </p>
 </section>
 
@@ -103,7 +149,11 @@
             ↓
           </button>
           <button type="button" (click)="removeStep(i)" aria-label="Remove step">✕</button>
+          <button type="button" class="ghost" (click)="inspect(step.className)">Info</button>
         </span>
+        @for (warning of stepWarnings()[i]; track warning) {
+          <p class="warning">{{ warning }}</p>
+        }
       </li>
     }
   </ol>
@@ -149,10 +199,123 @@
             }
           </tr>
         }
+        @if (inGame(); as shown) {
+          <tr class="in-game">
+            <th>In-game as {{ shown.className }}</th>
+            <td></td>
+            @for (key of statKeys; track key) {
+              <td>{{ shown.stats[key] | number: '1.0-1' }}</td>
+            }
+          </tr>
+        }
       </tbody>
     </table>
   </div>
+  @if (inGame(); as shown) {
+    <p class="hint">
+      "In-game" adds the {{ shown.className }} class's flat stat bonuses{{
+        shown.bonusesKnown ? '' : ' (not documented for this class, so +0)'
+      }}
+      and applies your caps.
+    </p>
+  }
 </section>
+
+@if (inspected(); as info) {
+  <section class="panel details" id="class-details">
+    <h2>{{ info.gameClass.name }}</h2>
+    <p class="muted">{{ tierLabel(info.gameClass.tier) }} class</p>
+    @if (info.details; as d) {
+      <dl class="facts">
+        <dt>Weapons</dt>
+        <dd>
+          @for (w of d.weapons; track w.type; let last = $last) {
+            {{ weaponLabel(w) }}{{ last ? '' : ', ' }}
+          } @empty {
+            None listed
+          }
+        </dd>
+        <dt>Movement</dt>
+        <dd>{{ d.movement.kind }}{{ d.movement.range ? ' · ' + d.movement.range : '' }}</dd>
+        <dt>Unlock</dt>
+        <dd>
+          @if (d.unlock; as u) {
+            @if (u.requires.length) {
+              Requires
+              @for (r of u.requires; track r.skill; let last = $last) {
+                {{ r.skill }} {{ r.rank }}{{ last ? '' : ', ' }}
+              }
+            }
+            @if (u.level) {
+              · level {{ u.level }}
+            }
+            @if (u.renown) {
+              · renown {{ u.renown }}
+            }
+            @if (u.license) {
+              · {{ u.license }}
+            }
+            @for (note of u.notes; track note) {
+              <br />{{ note }}
+            }
+          } @else {
+            Starting class
+          }
+        </dd>
+      </dl>
+      <h3>Skills</h3>
+      <ul class="skills">
+        @for (skill of d.skills; track skill) {
+          <li>
+            <strong>{{ skill }}</strong>
+            {{ abilityEffect(skill) ?? '' }}
+          </li>
+        } @empty {
+          <li class="muted">No class skills documented.</li>
+        }
+        @if (d.masterSkill) {
+          <li>
+            <strong>{{ d.masterSkill }}</strong> <span class="tag">Mastery</span>
+            {{ abilityEffect(d.masterSkill) ?? '' }}
+          </li>
+        }
+      </ul>
+      <div class="scroll">
+        <table class="stats">
+          <thead>
+            <tr>
+              <th></th>
+              @for (key of statKeys; track key) {
+                <th>{{ labels[key] }}</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>Growth</th>
+              @for (key of statKeys; track key) {
+                <td>{{ info.gameClass.modifiers[key] }}%</td>
+              }
+            </tr>
+            <tr>
+              <th>Stat bonus</th>
+              @for (key of statKeys; track key) {
+                <td>{{ d.baseBonuses ? d.baseBonuses[key] : '?' }}</td>
+              }
+            </tr>
+            <tr>
+              <th>Cap</th>
+              @for (key of statKeys; track key) {
+                <td>{{ d.caps ? d.caps[key] : '?' }}</td>
+              }
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="hint">"?" means no source documents it yet.</p>
+    }
+  </section>
+}
 
 <section class="panel fit">
   <div class="panel-head">
@@ -194,7 +357,14 @@
       <tbody>
         @for (row of classFit(); track row.gameClass.name) {
           <tr>
-            <th>{{ row.gameClass.name }}</th>
+            <th>
+              <button type="button" class="link" (click)="inspect(row.gameClass.name)">
+                {{ row.gameClass.name }}
+              </button>
+              @if (row.suits) {
+                <span class="tag" title="Exam skills match this unit's strengths">fits</span>
+              }
+            </th>
             <td class="muted">{{ tierLabel(row.gameClass.tier) }}</td>
             <td>
               <strong>{{ row.score }}</strong>
