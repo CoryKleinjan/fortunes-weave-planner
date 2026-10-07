@@ -1,8 +1,5 @@
 :host {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
+  display: block;
 }
 
 .frame {
@@ -39,30 +36,6 @@ img {
   }
 }
 
-.actions {
-  display: flex;
-  gap: 4px;
-  font-size: 0.8rem;
-}
-
-.upload {
-  cursor: pointer;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 2px 8px;
-  input {
-    display: none;
-  }
-  &:hover {
-    border-color: var(--accent);
-  }
-}
-
-button {
-  font-size: inherit;
-  padding: 2px 8px;
-}
-
 @media (max-width: 500px) {
   .frame {
     width: 80px;
@@ -70,9 +43,5 @@ button {
   }
   .badge {
     font-size: 1.6rem;
-  }
-  .actions {
-    flex-direction: column;
-    align-items: stretch;
   }
 }

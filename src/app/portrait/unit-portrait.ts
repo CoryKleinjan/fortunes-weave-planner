@@ -1,5 +1,4 @@
-import { Component, computed, inject, input, linkedSignal } from '@angular/core';
-import { PortraitStore } from './portrait-store';
+import { Component, computed, input, linkedSignal } from '@angular/core';
 
 /** Where the in-game portraits are hosted; the art isn't bundled with the app. */
 export const PORTRAIT_BASE = 'https://fortunesweave.co.uk/images/portrait/';
@@ -29,8 +28,8 @@ export function factionHue(faction: string): number {
 }
 
 /**
- * Shows a unit's picture: one the user uploaded, else the in-game portrait from the
- * fan site, else (offline, or the site moved it) an initials badge in the faction's colour.
+ * Shows a unit's in-game portrait from the fan site, or an initials badge in the faction's
+ * colour when it can't load (offline, or the site moved it).
  */
 @Component({
   selector: 'app-unit-portrait',
@@ -41,22 +40,9 @@ export class UnitPortrait {
   readonly name = input.required<string>();
   readonly faction = input.required<string>();
 
-  private readonly store = inject(PortraitStore);
-
-  protected readonly uploaded = computed(() => this.store.pictures()[this.name()]);
   protected readonly gameSrc = computed(() => `${PORTRAIT_BASE}${portraitSlug(this.name())}.webp`);
   /** Resets for each unit; flips to false when the portrait can't be loaded. */
   protected readonly gameOk = linkedSignal({ source: this.name, computation: () => true });
   protected readonly initials = computed(() => initials(this.name()));
   protected readonly hue = computed(() => factionHue(this.faction()));
-
-  protected async onFile(input: HTMLInputElement): Promise<void> {
-    const file = input.files?.[0];
-    input.value = '';
-    if (file) await this.store.setFromFile(this.name(), file);
-  }
-
-  protected remove(): void {
-    this.store.remove(this.name());
-  }
 }
