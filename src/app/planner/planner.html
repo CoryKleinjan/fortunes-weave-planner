@@ -354,35 +354,62 @@
 
   <h3>Add an ability</h3>
   <p class="hint">
-    Type in the ability box to pick one of {{ unit.name }}'s unique abilities or a weapon-rank or
-    mount-bond ability, or enter any other. Set the level you expect to have it by.
+    Open or type in the ability box to pick one of {{ unit.name }}'s unique abilities or a
+    weapon-rank or mount-bond ability, or enter any other. Set the level you expect to have it by.
   </p>
   <form class="add-ability" (submit)="$event.preventDefault(); addCustomAbility()">
     <span class="ability-combo">
       <input
         placeholder="Pick or type an ability…"
         aria-label="Ability name"
-        list="ability-choices"
+        role="combobox"
+        aria-autocomplete="list"
+        aria-controls="ability-choices"
+        [attr.aria-expanded]="menuOpen()"
+        autocomplete="off"
         required
         [value]="draftName()"
-        (input)="typeDraftName($any($event.target).value)"
+        (input)="typeDraftName($any($event.target).value); openMenu()"
+        (click)="openMenu()"
+        (blur)="menuOpen.set(false)"
+        (keydown)="menuKey($event)"
       />
       @if (draftName()) {
         <button type="button" class="clear" aria-label="Clear ability" (click)="clearDraft()">
           ×
         </button>
       }
+      <button
+        type="button"
+        class="toggle"
+        aria-label="Show abilities"
+        tabindex="-1"
+        (mousedown)="$event.preventDefault(); toggleMenu()"
+      >
+        ▾
+      </button>
+      @if (menuOpen() && abilityOptions().length) {
+        <ul class="menu" id="ability-choices" role="listbox">
+          @for (o of abilityOptions(); track o.name; let i = $index) {
+            @if (i === 0 || o.group !== abilityOptions()[i - 1].group) {
+              <li class="group" role="presentation">{{ o.group }}</li>
+            }
+            <li
+              role="option"
+              [class.active]="i === activeOption()"
+              [attr.aria-selected]="i === activeOption()"
+              (mousedown)="$event.preventDefault(); chooseAbility(o.name)"
+              (mouseenter)="activeOption.set(i)"
+            >
+              <span>{{ o.name }}</span>
+              @if (o.level) {
+                <span class="muted">Lv {{ o.level }}</span>
+              }
+            </li>
+          }
+        </ul>
+      }
     </span>
-    <datalist id="ability-choices">
-      @for (a of uniqueChoices(); track a.name) {
-        <option [value]="a.name">
-          Unique to {{ unit.name }}{{ a.level ? ' · Lv ' + a.level : '' }}
-        </option>
-      }
-      @for (a of skillChoices; track a.name) {
-        <option [value]="a.name">Skill ability</option>
-      }
-    </datalist>
     <input
       placeholder="Effect (optional)"
       aria-label="Ability effect"

@@ -275,9 +275,10 @@ h3 {
   min-width: 0;
   input {
     width: 100%;
-    padding-right: 2em;
+    padding-right: 3.6em;
   }
-  .clear {
+  .clear,
+  .toggle {
     position: absolute;
     right: 4px;
     top: 50%;
@@ -289,6 +290,47 @@ h3 {
     font-size: 1.1em;
     line-height: 1;
     cursor: pointer;
+  }
+  .clear {
+    right: 1.8em;
+  }
+  .menu {
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 0;
+    right: 0;
+    z-index: 10;
+    max-height: 18rem;
+    overflow-y: auto;
+    margin: 0;
+    padding: 4px 0;
+    list-style: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    box-shadow: 0 6px 16px rgb(0 0 0 / 0.15);
+  }
+  .menu li {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 4px 10px;
+  }
+  .menu li[role='option'] {
+    cursor: pointer;
+  }
+  .menu li.active {
+    background: var(--accent);
+    color: var(--on-accent);
+    .muted {
+      color: inherit;
+    }
+  }
+  .menu .group {
+    padding-top: 8px;
+    font-size: 0.8em;
+    font-weight: 600;
+    color: var(--muted);
   }
 }
 
