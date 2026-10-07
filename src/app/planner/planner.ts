@@ -147,6 +147,27 @@ export class Planner {
   protected readonly draftLevel = signal<number | null>(null);
   private draftSource: string | undefined;
 
+  /** The ability box's dropdown: the game's abilities matching what's typed. */
+  protected readonly menuOpen = signal(false);
+  protected readonly activeOption = signal(-1);
+  protected readonly abilityOptions = computed(() => {
+    const unique = this.uniqueChoices().map((a) => ({
+      name: a.name,
+      level: a.level,
+      group: 'Unique to ' + this.store.character().name,
+    }));
+    const skill = this.skillChoices.map((a) => ({
+      name: a.name,
+      level: a.level,
+      group: 'Skill abilities (weapon ranks, mount bonds)',
+    }));
+    const all = [...unique, ...skill];
+    const query = this.draftName().trim().toLowerCase();
+    // A name already picked from the list shows the whole list again, so it's easy to change.
+    if (!query || all.some((o) => o.name.toLowerCase() === query)) return all;
+    return all.filter((o) => o.name.toLowerCase().includes(query));
+  });
+
   protected selectUnit(name: string): void {
     this.store.selectedName.set(name);
   }
@@ -203,20 +224,17 @@ export class Planner {
     this.store.updatePlan((p) => ({ ...p, abilitySlots: toInt(value, DEFAULT_ABILITY_SLOTS) }));
   }
 
-  /** Fills the add-ability form from the game's list. */
-  protected pickAbility(name: string): void {
-    const ability = catalogAbility(name);
-    if (!ability) return;
-    this.draftName.set(ability.name);
-    this.draftEffect.set(ability.effect);
-    this.draftLevel.set(ability.level ?? null);
-    this.draftSource = ability.gainedBy;
-  }
-
+  /** Picking from the list fills in the effect and level; typing something else keeps what's there. */
   protected typeDraftName(name: string): void {
     this.draftName.set(name);
-    // A hand-typed ability isn't the one picked from the list any more.
-    if (catalogAbility(name)?.gainedBy !== this.draftSource) this.draftSource = undefined;
+    const ability = catalogAbility(name);
+    if (ability) {
+      this.draftEffect.set(ability.effect);
+      this.draftLevel.set(ability.level ?? null);
+      this.draftSource = ability.gainedBy;
+    } else {
+      this.draftSource = undefined;
+    }
   }
 
   protected addCustomAbility(): void {
@@ -235,6 +253,41 @@ export class Planner {
         },
       ],
     }));
+    this.clearDraft();
+  }
+
+  protected openMenu(): void {
+    this.menuOpen.set(true);
+    this.activeOption.set(-1);
+  }
+
+  protected toggleMenu(): void {
+    if (this.menuOpen()) this.menuOpen.set(false);
+    else this.openMenu();
+  }
+
+  protected chooseAbility(name: string): void {
+    this.typeDraftName(name);
+    this.menuOpen.set(false);
+  }
+
+  /** Arrow keys move through the dropdown, Enter picks, Escape closes. */
+  protected menuKey(event: KeyboardEvent): void {
+    const count = this.abilityOptions().length;
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      if (!this.menuOpen()) this.openMenu();
+      const step = event.key === 'ArrowDown' ? 1 : -1;
+      this.activeOption.update((i) => (count ? (i + step + count) % count : -1));
+    } else if (event.key === 'Enter' && this.menuOpen() && this.activeOption() >= 0) {
+      event.preventDefault();
+      this.chooseAbility(this.abilityOptions()[this.activeOption()].name);
+    } else if (event.key === 'Escape') {
+      this.menuOpen.set(false);
+    }
+  }
+
+  protected clearDraft(): void {
     this.draftName.set('');
     this.draftEffect.set('');
     this.draftLevel.set(null);
