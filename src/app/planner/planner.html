@@ -221,6 +221,141 @@
   }
 </section>
 
+<section class="panel abilities">
+  <div class="panel-head">
+    <h2>Abilities</h2>
+    <label class="field inline slots">
+      <span>Equip slots</span>
+      <input
+        type="number"
+        min="0"
+        [value]="abilitySlots()"
+        (change)="setAbilitySlots($any($event.target).value)"
+      />
+    </label>
+  </div>
+  <p class="hint">
+    Class skills work while the unit is in that class. Tick "mastered" on a step to learn its
+    mastery ability at the end of that step; from then on it can be equipped in any class. No source
+    documents the number of equip slots, so set it to match your game.
+  </p>
+
+  <ol class="ability-steps">
+    @for (s of abilitySteps(); track $index; let i = $index, last = $last) {
+      <li>
+        <div class="ability-step-head">
+          <strong>{{ s.className }}</strong>
+          <span class="muted">Lv {{ s.startLevel }} → {{ s.endLevel }}</span>
+        </div>
+
+        <p class="always-on">
+          <span class="muted">Always on:</span>
+          @for (name of s.innate; track name; let lastName = $last) {
+            <span [title]="abilityEffect(name) ?? ''">{{ name }}</span
+            >{{ lastName ? '' : ', ' }}
+          } @empty {
+            <span class="muted">none</span>
+          }
+        </p>
+
+        <div class="ability-line">
+          <span class="muted"> Equipped ({{ s.equipped.length }}/{{ abilitySlots() }}): </span>
+          @for (a of s.available; track a.name) {
+            <button
+              type="button"
+              class="chip"
+              [class.on]="s.equipped.includes(a.name)"
+              [attr.aria-pressed]="s.equipped.includes(a.name)"
+              [title]="a.effect ?? a.source"
+              (click)="toggleEquip(i, a.name)"
+            >
+              {{ a.name }}
+            </button>
+          } @empty {
+            <span class="muted">nothing learned yet</span>
+          }
+          @if (!last && s.equipped.length) {
+            <button type="button" class="ghost" (click)="carryEquipsForward(i)">
+              Keep for later steps
+            </button>
+          }
+        </div>
+        @if (s.equipped.length > abilitySlots()) {
+          <p class="warning">
+            {{ s.equipped.length }} abilities equipped but only {{ abilitySlots() }} slots.
+          </p>
+        }
+        @for (name of s.notYetLearned; track name) {
+          <p class="warning">{{ name }} is planned here but isn't learned until later.</p>
+        }
+
+        @if (s.masterSkill) {
+          <label class="mastery">
+            <input
+              type="checkbox"
+              [checked]="store.plan().route[i].mastered"
+              (change)="toggleMastered(i)"
+            />
+            Master {{ s.className }} by Lv {{ s.endLevel }} to learn
+            <strong>{{ s.masterSkill }}</strong>
+            <span class="muted">{{ abilityEffect(s.masterSkill) ?? '' }}</span>
+          </label>
+        }
+        @for (g of s.gained; track g.name) {
+          <p class="gained">
+            Learns <strong>{{ g.name }}</strong> at Lv {{ g.level }} ({{ g.source }})
+          </p>
+        }
+      </li>
+    }
+  </ol>
+
+  <h3>Add an ability</h3>
+  <p class="hint">
+    For abilities the planner doesn't know about, like ones from weapon ranks or items.
+  </p>
+  <form
+    class="add-ability"
+    (submit)="
+      $event.preventDefault();
+      addCustomAbility(abilityName.value, abilityEffectInput.value, abilityLevel.value) &&
+        (abilityName.value = abilityEffectInput.value = '')
+    "
+  >
+    <input #abilityName placeholder="Ability name" aria-label="Ability name" required />
+    <input #abilityEffectInput placeholder="Effect (optional)" aria-label="Ability effect" />
+    <label>
+      at Lv
+      <input
+        #abilityLevel
+        type="number"
+        min="1"
+        [value]="store.plan().startLevel"
+        aria-label="Level gained"
+      />
+    </label>
+    <button type="submit">Add</button>
+  </form>
+
+  @if (learnedAbilities().length) {
+    <h3>Learned over this route</h3>
+    <ul class="skills">
+      @for (a of learnedAbilities(); track a.name) {
+        <li>
+          <strong>{{ a.name }}</strong>
+          <span class="muted">Lv {{ a.level }} · {{ a.source }}</span>
+          {{ a.effect ?? '' }}
+          @if (a.source === 'Added by you') {
+            <button type="button" class="ghost" (click)="removeCustomAbility(a.name)">
+              Remove
+            </button>
+          }
+        </li>
+      }
+    </ul>
+  }
+</section>
+
 @if (inspected(); as info) {
   <section class="panel details" id="class-details">
     <h2>{{ info.gameClass.name }}</h2>

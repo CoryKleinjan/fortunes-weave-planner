@@ -4,6 +4,10 @@ import { GameClass, STAT_KEYS, StatKey, Stats, emptyStats } from '../data/models
 export interface RouteStep {
   className: string;
   levels: number;
+  /** The user plans to master the class by the end of this step. */
+  mastered?: boolean;
+  /** Abilities the user plans to equip during this step. */
+  equipped?: string[];
 }
 
 export interface ProjectedStep {
