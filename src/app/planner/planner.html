@@ -323,7 +323,7 @@
       [value]="''"
       (change)="pickAbility($any($event.target).value); $any($event.target).value = ''"
     >
-      <option value="">Pick from the game's abilities…</option>
+      <option value="">Pick Abilities…</option>
       @if (uniqueChoices().length) {
         <optgroup [label]="'Unique to ' + unit.name">
           @for (a of uniqueChoices(); track a.name) {
