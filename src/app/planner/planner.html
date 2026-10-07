@@ -358,14 +358,21 @@
     mount-bond ability, or enter any other. Set the level you expect to have it by.
   </p>
   <form class="add-ability" (submit)="$event.preventDefault(); addCustomAbility()">
-    <input
-      placeholder="Pick or type an ability…"
-      aria-label="Ability name"
-      list="ability-choices"
-      required
-      [value]="draftName()"
-      (input)="typeDraftName($any($event.target).value)"
-    />
+    <span class="ability-combo">
+      <input
+        placeholder="Pick or type an ability…"
+        aria-label="Ability name"
+        list="ability-choices"
+        required
+        [value]="draftName()"
+        (input)="typeDraftName($any($event.target).value)"
+      />
+      @if (draftName()) {
+        <button type="button" class="clear" aria-label="Clear ability" (click)="clearDraft()">
+          ×
+        </button>
+      }
+    </span>
     <datalist id="ability-choices">
       @for (a of uniqueChoices(); track a.name) {
         <option [value]="a.name">

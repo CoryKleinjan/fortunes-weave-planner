@@ -232,6 +232,10 @@ export class Planner {
         },
       ],
     }));
+    this.clearDraft();
+  }
+
+  protected clearDraft(): void {
     this.draftName.set('');
     this.draftEffect.set('');
     this.draftLevel.set(null);
