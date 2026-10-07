@@ -148,12 +148,6 @@ export class Planner {
     });
   }
 
-  protected useJoinStats(): void {
-    const bases = this.store.details()?.bases;
-    if (!bases) return;
-    this.store.updatePlan((p) => ({ ...p, startStats: { ...bases } }));
-  }
-
   protected inspect(className: string): void {
     this.store.inspectedClass.set(className);
     // Wait for the panel to render, then bring it into view.

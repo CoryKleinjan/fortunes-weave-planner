@@ -99,9 +99,6 @@
       (change)="setStartLevel($any($event.target).value)"
     />
   </label>
-  @if (unitDetails?.bases) {
-    <button type="button" class="ghost" (click)="useJoinStats()">Use join stats</button>
-  }
   <p class="hint">
     Enter the unit's current stats from the game; the planner adds expected growth on top.
     @if (unitDetails?.bases) {
