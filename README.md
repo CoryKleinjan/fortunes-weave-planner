@@ -2,6 +2,8 @@
 
 An Angular app for planning units in _Fire Emblem: Fortune's Weave_: pick a character, lay out a class route level by level, and see expected stats and which classes suit them.
 
+**Download for Windows:** [installer](https://github.com/CoryKleinjan/fortunes-weave-planner/releases/latest/download/FortunesWeavePlanner-Setup.exe) or [portable .exe](https://github.com/CoryKleinjan/fortunes-weave-planner/releases/latest/download/FortunesWeavePlanner-Portable.exe) (no install needed). All versions are on the [Releases page](https://github.com/CoryKleinjan/fortunes-weave-planner/releases). The app isn't code-signed, so Windows SmartScreen asks you to confirm the first time: click **More info**, then **Run anyway**.
+
 ## Features
 
 - All 63 playable characters, grouped by faction, with personal growth rates.
@@ -36,7 +38,7 @@ Gaps: stat caps (all classes), join stats for most units, join levels, flat stat
 
 The planner also runs as a desktop app (Electron). Plans are saved on that computer between launches. Unit pictures still need an internet connection.
 
-- Windows: run the **Desktop app** workflow from the repo's Actions tab, or push a tag like `v1.0.0`. It builds a `Setup` installer and a portable `.exe`, which you can download from the run, or from the release when you pushed a tag. The app isn't code-signed, so Windows SmartScreen asks you to confirm the first time: click **More info**, then **Run anyway**.
+- Publishing a new version: bump `version` in `package.json`, then run the **Desktop app** workflow from the repo's Actions tab (or push a tag like `v1.0.1`). It builds the installer and portable `.exe` on Windows and publishes them as a release, so the download links above always point to the newest one.
 - Build it yourself: `npm run dist:win` (on Windows), `npm run dist:mac` or `npm run dist:linux`. Output goes to `release/`.
 - Try it without packaging: `npm run desktop`.
 
