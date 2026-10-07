@@ -7,7 +7,6 @@
     'unit route'
     'projection projection'
     'abilities abilities'
-    'build build'
     'details details'
     'fit fit';
 }
@@ -15,7 +14,7 @@
 @media (max-width: 1100px) {
   :host {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'unit' 'route' 'projection' 'abilities' 'build' 'details' 'fit';
+    grid-template-areas: 'unit' 'route' 'projection' 'abilities' 'details' 'fit';
   }
 }
 
@@ -36,9 +35,6 @@
 }
 .abilities {
   grid-area: abilities;
-}
-.build {
-  grid-area: build;
 }
 
 .panel {
