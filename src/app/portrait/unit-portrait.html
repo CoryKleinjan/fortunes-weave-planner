@@ -1,4 +1,4 @@
-<div class="frame">
+<div class="frame" [class.small]="small()">
   @if (gameOk()) {
     <img
       [src]="gameSrc()"

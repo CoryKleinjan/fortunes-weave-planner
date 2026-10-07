@@ -39,6 +39,8 @@ export function factionHue(faction: string): number {
 export class UnitPortrait {
   readonly name = input.required<string>();
   readonly faction = input.required<string>();
+  /** A thumbnail-sized picture, for lists. */
+  readonly small = input(false);
 
   protected readonly gameSrc = computed(() => `${PORTRAIT_BASE}${portraitSlug(this.name())}.webp`);
   /** Resets for each unit; flips to false when the portrait can't be loaded. */

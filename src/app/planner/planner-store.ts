@@ -71,6 +71,10 @@ export class PlannerStore {
     const name = this.character().name;
     return this.plans()[name] ?? defaultPlan(name);
   });
+  /** A unit's saved plan, or its default when the user hasn't edited it. */
+  planFor(name: string): UnitPlan {
+    return this.plans()[name] ?? defaultPlan(name);
+  }
   readonly projection = computed(() => {
     const plan = this.plan();
     return projectRoute(
@@ -81,6 +85,7 @@ export class PlannerStore {
       this.classByName,
     );
   });
+  /** Units the user has edited, in the order they were first edited; resetting one drops it. */
   readonly plannedUnits = computed(() => Object.keys(this.plans()));
 
   constructor() {

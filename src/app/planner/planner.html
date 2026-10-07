@@ -2,6 +2,38 @@
 @let plan = store.plan();
 @let unitDetails = store.details();
 
+<section class="panel recruited" aria-label="Recruited units">
+  <div class="panel-head">
+    <h2>Recruited units</h2>
+    <span class="muted">{{ recruited().length }}</span>
+  </div>
+  @if (recruited().length) {
+    <ul class="roster">
+      @for (r of recruited(); track r.name) {
+        <li>
+          <button
+            type="button"
+            class="recruit"
+            [class.on]="r.name === unit.name"
+            [attr.aria-pressed]="r.name === unit.name"
+            (click)="selectUnit(r.name)"
+          >
+            <app-unit-portrait [name]="r.name" [faction]="r.faction" [small]="true" />
+            <span>
+              <strong>{{ r.name }}</strong>
+              <span class="muted">Lv {{ r.level }} {{ r.className }}</span>
+            </span>
+          </button>
+        </li>
+      }
+    </ul>
+  } @else {
+    <p class="hint">
+      Units you edit show up here. Use "Reset unit" on a unit's class route to take it off the list.
+    </p>
+  }
+</section>
+
 <section class="panel unit">
   <div class="unit-head">
     <app-unit-portrait [name]="unit.name" [faction]="unit.faction" />

@@ -121,6 +121,20 @@ export class Planner {
     return last ? [...last.available, ...last.gained] : [];
   });
 
+  /** Every unit the user has edited, with its level and class at the end of its route. */
+  protected readonly recruited = computed(() =>
+    this.store.plannedUnits().map((name) => {
+      const plan = this.store.planFor(name);
+      const levels = plan.route.reduce((sum, step) => sum + Math.max(0, step.levels), 0);
+      return {
+        name,
+        faction: this.store.characters.find((c) => c.name === name)?.faction ?? '',
+        level: plan.startLevel + levels,
+        className: plan.route[plan.route.length - 1]?.className ?? '',
+      };
+    }),
+  );
+
   /** Abilities from the game's list the user can add for this unit. */
   protected readonly uniqueChoices = computed(() =>
     uniqueAbilitiesFor(this.store.character().name),
