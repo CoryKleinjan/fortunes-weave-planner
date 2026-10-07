@@ -33,6 +33,14 @@ All data is in `src/app/data/`:
 
 Gaps: stat caps (all classes), join stats for most units, join levels, flat stat bonuses for 15 classes, and Tobias's details. These were read through a page summarizer, so spot-check against the game.
 
+## Desktop app
+
+The planner also runs as a desktop app (Electron). Plans are saved on that computer between launches. Unit pictures still need an internet connection.
+
+- Windows: run the **Desktop app** workflow from the repo's Actions tab, or push a tag like `v1.0.0`. It builds a `Setup` installer and a portable `.exe`, which you can download from the run, or from the release when you pushed a tag. The app isn't code-signed, so Windows SmartScreen asks you to confirm the first time: click **More info**, then **Run anyway**.
+- Build it yourself: `npm run dist:win` (on Windows), `npm run dist:mac` or `npm run dist:linux`. Output goes to `release/`.
+- Try it without packaging: `npm run desktop`.
+
 ## Development
 
 Requires Node 22.22.3+ or 24.15+ (Angular 22).
