@@ -4,6 +4,7 @@ import { CHARACTERS } from '../data/characters';
 import { CLASS_DETAILS } from '../data/class-details';
 import { CLASSES } from '../data/classes';
 import { StatKey, Stats, emptyStats } from '../data/models';
+import { CustomAbility } from './ability-plan';
 import { StatCaps } from './class-checks';
 import { RouteStep, projectRoute } from './growth';
 
@@ -13,6 +14,10 @@ export interface UnitPlan {
   route: RouteStep[];
   /** Caps the user entered; plans saved before caps existed lack this. */
   caps?: StatCaps;
+  /** Abilities the user added by hand (skill ranks, items, anything not in the data). */
+  customAbilities?: CustomAbility[];
+  /** Ability equip slots; undocumented in the game guides, so the user can change it. */
+  abilitySlots?: number;
 }
 
 const STORAGE_KEY = 'fw-planner.v1';
@@ -102,7 +107,8 @@ export class PlannerStore {
       ...current,
       startStats: { ...current.startStats },
       caps: { ...current.caps },
-      route: current.route.map((s) => ({ ...s })),
+      route: current.route.map((s) => ({ ...s, equipped: [...(s.equipped ?? [])] })),
+      customAbilities: [...(current.customAbilities ?? [])],
     });
     this.plans.update((plans) => ({ ...plans, [name]: next }));
   }

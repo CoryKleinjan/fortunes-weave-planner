@@ -2,6 +2,7 @@ import { DecimalPipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { abilityEffect } from '../data/abilities';
 import { ClassTier, ClassWeapon, STAT_KEYS, STAT_LABELS, StatKey, TIERS } from '../data/models';
+import { DEFAULT_ABILITY_SLOTS, planAbilities } from './ability-plan';
 import { classWarnings, statsInClass, suitsAptitudes } from './class-checks';
 import { effectiveGrowths, focusScore } from './growth';
 import { PlannerStore } from './planner-store';
@@ -98,6 +99,30 @@ export class Planner {
 
   protected readonly abilityEffect = abilityEffect;
 
+  protected readonly abilitySlots = computed(
+    () => this.store.plan().abilitySlots ?? DEFAULT_ABILITY_SLOTS,
+  );
+
+  /** Innate, learned and equipped abilities for each route step. */
+  protected readonly abilitySteps = computed(() => {
+    const plan = this.store.plan();
+    return planAbilities(
+      plan.route,
+      plan.startLevel,
+      this.store.details(),
+      this.store.classDetails,
+      plan.customAbilities ?? [],
+      abilityEffect,
+    );
+  });
+
+  /** Every ability the unit learns over the whole route, in the order it's gained. */
+  protected readonly learnedAbilities = computed(() => {
+    const steps = this.abilitySteps();
+    const last = steps[steps.length - 1];
+    return last ? [...last.available, ...last.gained] : [];
+  });
+
   protected selectUnit(name: string): void {
     this.store.selectedName.set(name);
   }
@@ -141,9 +166,62 @@ export class Planner {
     return weapon.rank ? `${weapon.type} ${weapon.rank}` : weapon.type;
   }
 
+  protected toggleMastered(index: number): void {
+    this.store.updatePlan((p) => {
+      p.route[index].mastered = !p.route[index].mastered;
+      return p;
+    });
+  }
+
+  protected toggleEquip(index: number, name: string): void {
+    this.store.updatePlan((p) => {
+      const step = p.route[index];
+      const equipped = step.equipped ?? [];
+      step.equipped = equipped.includes(name)
+        ? equipped.filter((n) => n !== name)
+        : [...equipped, name];
+      return p;
+    });
+  }
+
+  /** Copies this step's equipped abilities onto every later step. */
+  protected carryEquipsForward(index: number): void {
+    this.store.updatePlan((p) => {
+      const equipped = p.route[index].equipped ?? [];
+      p.route.slice(index + 1).forEach((step) => (step.equipped = [...equipped]));
+      return p;
+    });
+  }
+
+  protected setAbilitySlots(value: string): void {
+    this.store.updatePlan((p) => ({ ...p, abilitySlots: toInt(value, DEFAULT_ABILITY_SLOTS) }));
+  }
+
+  protected addCustomAbility(name: string, effect: string, level: string): boolean {
+    const trimmed = name.trim();
+    if (!trimmed) return false;
+    this.store.updatePlan((p) => ({
+      ...p,
+      customAbilities: [
+        ...(p.customAbilities ?? []).filter((a) => a.name !== trimmed),
+        { name: trimmed, effect: effect.trim(), level: toInt(level, p.startLevel) },
+      ],
+    }));
+    return true;
+  }
+
+  protected removeCustomAbility(name: string): void {
+    this.store.updatePlan((p) => ({
+      ...p,
+      customAbilities: (p.customAbilities ?? []).filter((a) => a.name !== name),
+    }));
+  }
+
   protected setStepClass(index: number, className: string): void {
     this.store.updatePlan((p) => {
       p.route[index].className = className;
+      // Mastery belongs to the old class, so a new class starts unmastered.
+      p.route[index].mastered = false;
       return p;
     });
   }

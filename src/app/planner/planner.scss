@@ -6,6 +6,7 @@
   grid-template-areas:
     'unit route'
     'projection projection'
+    'abilities abilities'
     'details details'
     'fit fit';
 }
@@ -13,7 +14,7 @@
 @media (max-width: 1100px) {
   :host {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'unit' 'route' 'projection' 'details' 'fit';
+    grid-template-areas: 'unit' 'route' 'projection' 'abilities' 'details' 'fit';
   }
 }
 
@@ -31,6 +32,9 @@
 }
 .details {
   grid-area: details;
+}
+.abilities {
+  grid-area: abilities;
 }
 
 .panel {
@@ -223,4 +227,66 @@ button.link {
   text-align: left;
   color: inherit;
   text-decoration: underline dotted;
+}
+
+.slots {
+  margin-top: 0;
+}
+
+.ability-steps {
+  padding-left: 20px;
+  margin: 0 0 12px;
+  > li {
+    padding: 8px 0;
+    border-top: 1px solid var(--border);
+  }
+}
+
+.ability-step-head {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.ability-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin: 6px 0;
+}
+
+.mastery {
+  display: block;
+  margin: 6px 0;
+}
+
+.gained {
+  margin: 4px 0;
+  color: var(--g-high);
+  font-size: 0.9em;
+}
+
+.add-ability {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+  input[type='number'] {
+    width: 56px;
+  }
+}
+
+.always-on {
+  margin: 6px 0;
+  > .muted:first-child {
+    margin-right: 0.35em;
+  }
+}
+
+// Keep a space between a bold name and the text that follows it.
+.skills li > * + *,
+.mastery > * + * {
+  margin-left: 0.35em;
 }
