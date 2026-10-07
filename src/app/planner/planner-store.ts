@@ -5,6 +5,7 @@ import { CLASS_DETAILS } from '../data/class-details';
 import { CLASSES } from '../data/classes';
 import { StatKey, Stats, emptyStats } from '../data/models';
 import { CustomAbility } from './ability-plan';
+import { EquippedWeapon } from './character-sheet';
 import { StatCaps } from './class-checks';
 import { RouteStep, projectRoute } from './growth';
 
@@ -18,6 +19,10 @@ export interface UnitPlan {
   customAbilities?: CustomAbility[];
   /** Ability equip slots; undocumented in the game guides, so the user can change it. */
   abilitySlots?: number;
+  /** Weapon shown on the character details sheet. */
+  weapon?: EquippedWeapon;
+  /** The unit's Build; no source lists it per unit, so the user enters it. */
+  build?: number;
 }
 
 const STORAGE_KEY = 'fw-planner.v1';

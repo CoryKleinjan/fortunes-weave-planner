@@ -9,6 +9,7 @@ import {
 } from '../data/ability-catalog';
 import { ClassTier, STAT_KEYS, STAT_LABELS, StatKey, TIERS } from '../data/models';
 import { DEFAULT_ABILITY_SLOTS, planAbilities } from './ability-plan';
+import { EquippedWeapon, characterSheet } from './character-sheet';
 import { classWarnings, statsInClass, suitsAptitudes } from './class-checks';
 import { effectiveGrowths, focusScore } from './growth';
 import { UnitPortrait } from '../portrait/unit-portrait';
@@ -119,6 +120,46 @@ export class Planner {
     const steps = this.abilitySteps();
     const last = steps[steps.length - 1];
     return last ? [...last.available, ...last.gained] : [];
+  });
+
+  /** Everything on the in-game character details screen, for the end of the route. */
+  protected readonly sheet = computed(() => {
+    const plan = this.store.plan();
+    const unit = this.store.details();
+    const steps = this.store.projection();
+    const last = steps[steps.length - 1];
+    const className =
+      last?.gameClass.name ?? plan.route[plan.route.length - 1]?.className ?? unit?.startingClass;
+    const details = className ? this.store.classDetails[className] : undefined;
+    const abilitySteps = this.abilitySteps();
+    const equipped = abilitySteps[abilitySteps.length - 1]?.equipped ?? [];
+    const learned = new Map(this.learnedAbilities().map((a) => [a.name, a]));
+
+    const personal = unit ? [unit.personalAbility] : [];
+    const classSkills = (details?.skills ?? []).map((name) => ({
+      name,
+      effect: abilityEffect(name),
+    }));
+    const equippedAbilities = equipped.map((name) => ({
+      name,
+      effect: learned.get(name)?.effect ?? abilityEffect(name),
+    }));
+    return {
+      className: className ?? 'No class',
+      level: this.finalLevel(),
+      personal,
+      classSkills,
+      equipped: equippedAbilities,
+      weapon: plan.weapon,
+      ...characterSheet(
+        last?.totals ?? plan.startStats,
+        details,
+        plan.caps ?? {},
+        [...personal, ...classSkills, ...equippedAbilities],
+        plan.weapon,
+        plan.build ?? 0,
+      ),
+    };
   });
 
   /** Abilities from the game's list the user can add for this unit. */
@@ -239,6 +280,25 @@ export class Planner {
     }));
   }
 
+  protected setWeapon<K extends keyof EquippedWeapon>(key: K, value: EquippedWeapon[K]): void {
+    this.store.updatePlan((p) => ({
+      ...p,
+      weapon: {
+        ...(p.weapon ?? { name: '', might: 0, hit: 0, crit: 0, weight: 0, magic: false }),
+        [key]: value,
+      },
+    }));
+  }
+
+  protected setBuild(value: string): void {
+    this.store.updatePlan((p) => ({ ...p, build: toInt(value, 0) }));
+  }
+
+  /** Number input value as a whole number, 0 when blank. */
+  protected num(value: string): number {
+    return toInt(value, 0);
+  }
+
   protected setStepClass(index: number, className: string): void {
     this.store.updatePlan((p) => {
       p.route[index].className = className;
@@ -274,6 +334,15 @@ export class Planner {
 
   protected setFitTier(value: string): void {
     this.fitTier.set(value as ClassTier | 'all');
+  }
+
+  /** Bar length for a stat on the details sheet, out of 60. */
+  protected statBar(value: number): number {
+    return Math.max(0, Math.min(100, (value / 60) * 100));
+  }
+
+  protected partialTitle(stat: { known: number; from: string }): string {
+    return `Weapon and abilities give ${stat.known}; the ${stat.from}-based part isn't documented.`;
   }
 
   protected tierLabel(tier: ClassTier): string {

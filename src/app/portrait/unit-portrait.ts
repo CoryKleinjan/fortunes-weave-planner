@@ -40,6 +40,8 @@ export function factionHue(faction: string): number {
 export class UnitPortrait {
   readonly name = input.required<string>();
   readonly faction = input.required<string>();
+  /** Picture only, without the upload controls. */
+  readonly compact = input(false);
 
   private readonly store = inject(PortraitStore);
 

@@ -14,12 +14,14 @@
     </div>
   }
 </div>
-<div class="actions">
-  <label class="upload">
-    {{ uploaded() ? 'Change picture' : 'Add picture' }}
-    <input type="file" accept="image/*" (change)="onFile($any($event.target))" />
-  </label>
-  @if (uploaded()) {
-    <button type="button" class="ghost" (click)="remove()">Remove</button>
-  }
-</div>
+@if (!compact()) {
+  <div class="actions">
+    <label class="upload">
+      {{ uploaded() ? 'Change picture' : 'Add picture' }}
+      <input type="file" accept="image/*" (change)="onFile($any($event.target))" />
+    </label>
+    @if (uploaded()) {
+      <button type="button" class="ghost" (click)="remove()">Remove</button>
+    }
+  </div>
+}

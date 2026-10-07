@@ -222,6 +222,183 @@
   }
 </section>
 
+<section class="panel sheet">
+  @let sh = sheet();
+  <h2>Character details</h2>
+  <div class="sheet-head">
+    <app-unit-portrait [name]="unit.name" [faction]="unit.faction" [compact]="true" />
+    <div>
+      <p class="sheet-name">{{ unit.name }}</p>
+      <p>Lv {{ sh.level }} {{ sh.className }}</p>
+      <p class="muted">{{ unit.faction }}</p>
+      <p class="sheet-hp">
+        HP <strong>{{ sh.stats.hp }}</strong>
+      </p>
+    </div>
+  </div>
+
+  <div class="sheet-body">
+    <div>
+      <h3>Stats</h3>
+      <dl class="sheet-list">
+        @for (key of statKeys; track key) {
+          @if (key !== 'hp') {
+            <dt>{{ labels[key] }}</dt>
+            <dd [title]="sh.capped.includes(key) ? 'Held to the cap' : ''">
+              <span class="bar"><span [style.width.%]="statBar(sh.stats[key])"></span></span>
+              <strong>{{ sh.stats[key] }}{{ sh.capped.includes(key) ? '*' : '' }}</strong>
+            </dd>
+          }
+        }
+        <dt>Bld</dt>
+        <dd>
+          <input
+            type="number"
+            min="0"
+            aria-label="Build"
+            [value]="store.plan().build ?? 0"
+            (change)="setBuild($any($event.target).value)"
+          />
+          @if (sh.bld !== (store.plan().build ?? 0)) {
+            <strong>{{ sh.bld }}</strong>
+          }
+        </dd>
+        <dt>Mov</dt>
+        <dd>
+          <strong>{{ sh.mov ?? '?' }}</strong>
+        </dd>
+      </dl>
+    </div>
+
+    <div>
+      <h3>Combat</h3>
+      <dl class="sheet-list combat">
+        <dt>Atk</dt>
+        <dd>
+          <strong>{{ sh.atk }}</strong>
+        </dd>
+        <dt>Hit</dt>
+        <dd [title]="partialTitle(sh.hit)">
+          <strong>{{ sh.hit.known }} + {{ sh.hit.from }}?</strong>
+        </dd>
+        <dt>Crit</dt>
+        <dd [title]="partialTitle(sh.crit)">
+          <strong>{{ sh.crit.known }} + {{ sh.crit.from }}?</strong>
+        </dd>
+        <dt>AS</dt>
+        <dd>
+          <strong>{{ sh.as }}</strong>
+        </dd>
+        <dt>Prt</dt>
+        <dd>
+          <strong>{{ sh.prt }}</strong>
+        </dd>
+        <dt>Rsl</dt>
+        <dd>
+          <strong>{{ sh.rsl }}</strong>
+        </dd>
+        <dt>Avo</dt>
+        <dd>
+          <strong>{{ sh.avo }}</strong>
+        </dd>
+        <dt>Ddg</dt>
+        <dd [title]="partialTitle(sh.ddg)">
+          <strong>{{ sh.ddg.known }} + {{ sh.ddg.from }}?</strong>
+        </dd>
+      </dl>
+      @if (sh.otherBonuses.length) {
+        <p class="hint">Also always on: {{ sh.otherBonuses.join(', ') }}</p>
+      }
+
+      <h3>Equipped weapon</h3>
+      <div class="weapon">
+        <input
+          placeholder="Weapon name"
+          aria-label="Weapon name"
+          [value]="sh.weapon?.name ?? ''"
+          (change)="setWeapon('name', $any($event.target).value)"
+        />
+        <label>
+          Mt
+          <input
+            type="number"
+            min="0"
+            [value]="sh.weapon?.might ?? 0"
+            (change)="setWeapon('might', num($any($event.target).value))"
+          />
+        </label>
+        <label>
+          Hit
+          <input
+            type="number"
+            min="0"
+            [value]="sh.weapon?.hit ?? 0"
+            (change)="setWeapon('hit', num($any($event.target).value))"
+          />
+        </label>
+        <label>
+          Crit
+          <input
+            type="number"
+            min="0"
+            [value]="sh.weapon?.crit ?? 0"
+            (change)="setWeapon('crit', num($any($event.target).value))"
+          />
+        </label>
+        <label>
+          Wt
+          <input
+            type="number"
+            min="0"
+            [value]="sh.weapon?.weight ?? 0"
+            (change)="setWeapon('weight', num($any($event.target).value))"
+          />
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            [checked]="sh.weapon?.magic ?? false"
+            (change)="setWeapon('magic', $any($event.target).checked)"
+          />
+          Magic
+        </label>
+      </div>
+    </div>
+
+    <div>
+      <h3>Abilities</h3>
+      <ul class="skills">
+        @for (a of sh.personal; track a.name) {
+          <li>
+            <strong>{{ a.name }}</strong> <span class="tag">Personal</span> {{ a.effect }}
+          </li>
+        }
+        @for (a of sh.classSkills; track a.name) {
+          <li>
+            <strong>{{ a.name }}</strong> <span class="tag">Class</span> {{ a.effect ?? '' }}
+          </li>
+        }
+        @for (a of sh.equipped; track a.name) {
+          <li>
+            <strong>{{ a.name }}</strong> <span class="tag">Equipped</span> {{ a.effect ?? '' }}
+          </li>
+        } @empty {
+          <li class="muted">Nothing equipped on the last route step.</li>
+        }
+      </ul>
+    </div>
+  </div>
+
+  <p class="hint">
+    The unit at the end of the route: average stats rounded, plus the {{ sh.className }} bonus and
+    abilities that always apply, held to your caps (marked *). Equipped abilities are the ones on
+    the last route step. Atk = Str (Mag for magic) + Mt; AS and Avo = Spd − (Wt − Bld); Prt = Def;
+    Rsl = Res. No source publishes how Dex feeds Hit and Crit or how Lck feeds Ddg, so those show
+    the weapon and ability parts only. Bld isn't listed per unit anywhere, so enter it from the
+    game.
+  </p>
+</section>
+
 <section class="panel abilities">
   <div class="panel-head">
     <h2>Abilities</h2>
