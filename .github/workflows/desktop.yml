@@ -1,7 +1,9 @@
 name: Desktop app
 
-# Builds the Windows installer and portable .exe. Run it from the Actions tab,
-# or push a tag like v1.0.0 to also attach the files to a GitHub release.
+# Builds the Windows installer and portable .exe and publishes them as a GitHub
+# release named after the version in package.json (v1.0.0 and so on), so they
+# can be downloaded from the repo page. Run it from the Actions tab after
+# bumping the version, or push a tag like v1.0.1.
 on:
   workflow_dispatch:
   push:
@@ -21,11 +23,19 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run dist:win -- --publish never
+      - id: version
+        shell: bash
+        run: echo "tag=v$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4
         with:
           name: fortunes-weave-planner-windows
           path: release/*.exe
-      - if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v2
         with:
-          files: release/*.exe
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || steps.version.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: Fortune's Weave Planner ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || steps.version.outputs.tag }}
+          make_latest: true
+          files: |
+            release/FortunesWeavePlanner-Setup.exe
+            release/FortunesWeavePlanner-Portable.exe

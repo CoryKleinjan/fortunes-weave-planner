@@ -55,10 +55,11 @@
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "FortunesWeavePlanner-Setup.exe"
     },
     "portable": {
-      "artifactName": "${productName}-${version}-portable.exe"
+      "artifactName": "FortunesWeavePlanner-Portable.exe"
     },
     "mac": {
       "target": "dmg"
