@@ -29,7 +29,8 @@
     </ul>
   } @else {
     <p class="hint">
-      Units you edit show up here. Use "Reset unit" on a unit's class route to take it off the list.
+      Units you edit or tick as Recruited show up here. Untick Recruited or use "Reset unit" to take
+      one off the list.
     </p>
   }
 </section>
@@ -52,6 +53,14 @@
             </optgroup>
           }
         </select>
+      </label>
+      <label class="recruited-check">
+        <input
+          type="checkbox"
+          [checked]="store.recruited()"
+          (change)="store.setRecruited($any($event.target).checked)"
+        />
+        Recruited
       </label>
       <p class="muted">
         {{ unit.faction }}

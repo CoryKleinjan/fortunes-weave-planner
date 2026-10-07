@@ -16,4 +16,19 @@ describe('PlannerStore recruited units', () => {
     store.resetPlan();
     expect(store.plannedUnits()).toEqual([]);
   });
+
+  it('ticks and unticks recruited without losing edits', () => {
+    const store = TestBed.inject(PlannerStore);
+    store.selectedName.set('Diego');
+    store.setRecruited(true);
+    expect(store.recruited()).toBe(true);
+
+    store.updatePlan((p) => ({ ...p, startLevel: 5 }));
+    store.setRecruited(false);
+    expect(store.plannedUnits()).toEqual([]);
+    expect(store.planFor('Diego').startLevel).toBe(5);
+
+    store.updatePlan((p) => ({ ...p, startLevel: 6 }));
+    expect(store.recruited()).toBe(true);
+  });
 });

@@ -18,6 +18,8 @@ export interface UnitPlan {
   customAbilities?: CustomAbility[];
   /** Ability equip slots; undocumented in the game guides, so the user can change it. */
   abilitySlots?: number;
+  /** False when the user unticked Recruited; editing the unit again recruits it. */
+  recruited?: boolean;
 }
 
 const STORAGE_KEY = 'fw-planner.v1';
@@ -85,8 +87,13 @@ export class PlannerStore {
       this.classByName,
     );
   });
-  /** Units the user has edited, in the order they were first edited; resetting one drops it. */
-  readonly plannedUnits = computed(() => Object.keys(this.plans()));
+  /** Units the user has edited or ticked, in the order they were first saved; resetting one drops it. */
+  readonly plannedUnits = computed(() =>
+    Object.entries(this.plans())
+      .filter(([, plan]) => plan.recruited !== false)
+      .map(([name]) => name),
+  );
+  readonly recruited = computed(() => this.plannedUnits().includes(this.character().name));
 
   constructor() {
     effect(() => {
@@ -113,7 +120,17 @@ export class PlannerStore {
       route: current.route.map((s) => ({ ...s, equipped: [...(s.equipped ?? [])] })),
       customAbilities: [...(current.customAbilities ?? [])],
     });
-    this.plans.update((plans) => ({ ...plans, [name]: next }));
+    this.plans.update((plans) => ({ ...plans, [name]: { ...next, recruited: undefined } }));
+  }
+
+  /** Ticking saves the unit's plan as is; unticking keeps its edits but takes it off the list. */
+  setRecruited(on: boolean): void {
+    const name = this.character().name;
+    const plan = this.plan();
+    this.plans.update((plans) => ({
+      ...plans,
+      [name]: { ...plan, recruited: on ? undefined : false },
+    }));
   }
 
   resetPlan(): void {
