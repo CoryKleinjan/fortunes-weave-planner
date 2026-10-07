@@ -1,3 +1,5 @@
+import { catalogAbility } from './ability-catalog';
+
 /**
  * Class and master skill effects, from fortunesweave.co.uk's abilities list and class
  * pages (checked 2026-10-07).
@@ -88,9 +90,11 @@ const WEAPON_WORDS: Readonly<Record<string, string>> = {
 
 const STAT_WORDS: Readonly<Record<string, string>> = { Hit: 'Hit', Crit: 'Crit', Avo: 'Avo' };
 
-/** Effect text for a class or master skill, or null if no source describes it. */
+/** Effect text for a class, master, unique or skill ability, or null if no source describes it. */
 export function abilityEffect(name: string): string | null {
   if (EFFECTS[name]) return EFFECTS[name];
+  const catalog = catalogAbility(name);
+  if (catalog) return catalog.effect;
 
   const arts = /^Combat Arts \+(\d+)$/.exec(name);
   if (arts) return `Unit can equip +${arts[1]} combat arts.`;

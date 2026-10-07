@@ -1,9 +1,16 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { abilityEffect } from '../data/abilities';
+import {
+  CatalogAbility,
+  SKILL_ABILITIES,
+  catalogAbility,
+  uniqueAbilitiesFor,
+} from '../data/ability-catalog';
 import { ClassTier, ClassWeapon, STAT_KEYS, STAT_LABELS, StatKey, TIERS } from '../data/models';
 import { DEFAULT_ABILITY_SLOTS, planAbilities } from './ability-plan';
 import { classWarnings, statsInClass, suitsAptitudes } from './class-checks';
+import { abilityTotals } from './final-stats';
 import { effectiveGrowths, focusScore } from './growth';
 import { UnitPortrait } from '../portrait/unit-portrait';
 import { PlannerStore } from './planner-store';
@@ -124,6 +131,68 @@ export class Planner {
     return last ? [...last.available, ...last.gained] : [];
   });
 
+  /** Abilities from the game's list the user can add for this unit. */
+  protected readonly uniqueChoices = computed(() =>
+    uniqueAbilitiesFor(this.store.character().name),
+  );
+  protected readonly skillChoices = SKILL_ABILITIES;
+
+  /** The add-ability form's fields, so picking from the list can fill them in. */
+  protected readonly draftName = signal('');
+  protected readonly draftEffect = signal('');
+  protected readonly draftLevel = signal<number | null>(null);
+  private draftSource: string | undefined;
+
+  /** Abilities the user can equip in the final build: everything learned by the route's end. */
+  protected readonly finalEquipped = computed(() => {
+    const learned = new Set(this.learnedAbilities().map((a) => a.name));
+    return (this.store.plan().finalEquipped ?? []).filter((name) => learned.has(name));
+  });
+
+  /** The unit at the end of the route: grown stats, class bonuses, always-on ability bonuses, caps. */
+  protected readonly finalBuild = computed(() => {
+    const plan = this.store.plan();
+    const unit = this.store.details();
+    const steps = this.store.projection();
+    const last = steps[steps.length - 1];
+    const className =
+      last?.gameClass.name ?? plan.route[plan.route.length - 1]?.className ?? unit?.startingClass;
+    const details = className ? this.store.classDetails[className] : undefined;
+    const grown = last?.totals ?? plan.startStats;
+
+    const innate = [
+      ...(unit ? [unit.personalAbility] : []),
+      ...(details?.skills ?? []).map((name) => ({ name, effect: abilityEffect(name) })),
+    ];
+    const learned = new Map(this.learnedAbilities().map((a) => [a.name, a]));
+    const equipped = this.finalEquipped().map((name) => ({
+      name,
+      effect: learned.get(name)?.effect ?? abilityEffect(name),
+    }));
+    const abilities = abilityTotals([...innate, ...equipped]);
+
+    const beforeCaps = { ...grown };
+    for (const key of STAT_KEYS) {
+      beforeCaps[key] += (details?.baseBonuses?.[key] ?? 0) + abilities.stats[key];
+    }
+    const final = statsInClass(
+      Object.fromEntries(STAT_KEYS.map((k) => [k, grown[k] + abilities.stats[k]])) as typeof grown,
+      details,
+      plan.caps ?? {},
+    );
+    return {
+      className: className ?? 'no class',
+      level: this.finalLevel(),
+      grown,
+      classBonus: details?.baseBonuses ?? null,
+      abilities,
+      final,
+      capped: STAT_KEYS.filter((k) => final[k] < beforeCaps[k]),
+      innate: innate.map((a) => a.name),
+      other: Object.entries(abilities.other).map(([label, amount]) => `${label} +${amount}`),
+    };
+  });
+
   protected selectUnit(name: string): void {
     this.store.selectedName.set(name);
   }
@@ -192,17 +261,66 @@ export class Planner {
     this.store.updatePlan((p) => ({ ...p, abilitySlots: toInt(value, DEFAULT_ABILITY_SLOTS) }));
   }
 
-  protected addCustomAbility(name: string, effect: string, level: string): boolean {
-    const trimmed = name.trim();
-    if (!trimmed) return false;
+  /** Fills the add-ability form from the game's list. */
+  protected pickAbility(name: string): void {
+    const ability = catalogAbility(name);
+    if (!ability) return;
+    this.draftName.set(ability.name);
+    this.draftEffect.set(ability.effect);
+    this.draftLevel.set(ability.level ?? null);
+    this.draftSource = ability.gainedBy;
+  }
+
+  protected typeDraftName(name: string): void {
+    this.draftName.set(name);
+    // A hand-typed ability isn't the one picked from the list any more.
+    if (catalogAbility(name)?.gainedBy !== this.draftSource) this.draftSource = undefined;
+  }
+
+  protected addCustomAbility(): void {
+    const trimmed = this.draftName().trim();
+    if (!trimmed) return;
+    const source = this.draftSource;
     this.store.updatePlan((p) => ({
       ...p,
       customAbilities: [
         ...(p.customAbilities ?? []).filter((a) => a.name !== trimmed),
-        { name: trimmed, effect: effect.trim(), level: toInt(level, p.startLevel) },
+        {
+          name: trimmed,
+          effect: this.draftEffect().trim(),
+          level: this.draftLevel() ?? p.startLevel,
+          ...(source ? { source } : {}),
+        },
       ],
     }));
-    return true;
+    this.draftName.set('');
+    this.draftEffect.set('');
+    this.draftLevel.set(null);
+    this.draftSource = undefined;
+  }
+
+  protected setDraftLevel(value: string): void {
+    const n = Number.parseInt(value, 10);
+    this.draftLevel.set(Number.isFinite(n) && n > 0 ? n : null);
+  }
+
+  protected toggleFinalEquip(name: string): void {
+    this.store.updatePlan((p) => {
+      const equipped = (p.finalEquipped ?? []).filter((n) => n !== name);
+      return {
+        ...p,
+        finalEquipped:
+          equipped.length === (p.finalEquipped ?? []).length ? [...equipped, name] : equipped,
+      };
+    });
+  }
+
+  /** Starts the final build from what's equipped on the route's last step. */
+  protected copyLastStepEquips(): void {
+    const steps = this.abilitySteps();
+    const last = steps[steps.length - 1];
+    if (!last) return;
+    this.store.updatePlan((p) => ({ ...p, finalEquipped: [...last.equipped] }));
   }
 
   protected removeCustomAbility(name: string): void {
@@ -247,6 +365,12 @@ export class Planner {
 
   protected setFitTier(value: string): void {
     this.fitTier.set(value as ClassTier | 'all');
+  }
+
+  /** "+3" for bonuses, blank for none. */
+  protected signed(value: number): string {
+    if (!value) return '';
+    return value > 0 ? `+${value}` : `${value}`;
   }
 
   protected tierLabel(tier: ClassTier): string {

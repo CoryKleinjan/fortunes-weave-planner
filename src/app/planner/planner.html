@@ -314,25 +314,51 @@
 
   <h3>Add an ability</h3>
   <p class="hint">
-    For abilities the planner doesn't know about, like ones from weapon ranks or items.
+    Pick one of {{ unit.name }}'s unique abilities or a weapon-rank or mount-bond ability, or type
+    in any other. Set the level you expect to have it by.
   </p>
-  <form
-    class="add-ability"
-    (submit)="
-      $event.preventDefault();
-      addCustomAbility(abilityName.value, abilityEffectInput.value, abilityLevel.value) &&
-        (abilityName.value = abilityEffectInput.value = '')
-    "
-  >
-    <input #abilityName placeholder="Ability name" aria-label="Ability name" required />
-    <input #abilityEffectInput placeholder="Effect (optional)" aria-label="Ability effect" />
+  <form class="add-ability" (submit)="$event.preventDefault(); addCustomAbility()">
+    <select
+      aria-label="Pick an ability from the game"
+      [value]="''"
+      (change)="pickAbility($any($event.target).value); $any($event.target).value = ''"
+    >
+      <option value="">Pick from the game's abilities…</option>
+      @if (uniqueChoices().length) {
+        <optgroup [label]="'Unique to ' + unit.name">
+          @for (a of uniqueChoices(); track a.name) {
+            <option [value]="a.name">
+              {{ a.name }}{{ a.level ? ' (Lv ' + a.level + ')' : '' }}
+            </option>
+          }
+        </optgroup>
+      }
+      <optgroup label="Skill abilities (weapon ranks, mount bonds)">
+        @for (a of skillChoices; track a.name) {
+          <option [value]="a.name">{{ a.name }}</option>
+        }
+      </optgroup>
+    </select>
+    <input
+      placeholder="Ability name"
+      aria-label="Ability name"
+      required
+      [value]="draftName()"
+      (input)="typeDraftName($any($event.target).value)"
+    />
+    <input
+      placeholder="Effect (optional)"
+      aria-label="Ability effect"
+      [value]="draftEffect()"
+      (input)="draftEffect.set($any($event.target).value)"
+    />
     <label>
       at Lv
       <input
-        #abilityLevel
         type="number"
         min="1"
-        [value]="store.plan().startLevel"
+        [value]="draftLevel() ?? store.plan().startLevel"
+        (input)="setDraftLevel($any($event.target).value)"
         aria-label="Level gained"
       />
     </label>
@@ -347,7 +373,7 @@
           <strong>{{ a.name }}</strong>
           <span class="muted">Lv {{ a.level }} · {{ a.source }}</span>
           {{ a.effect ?? '' }}
-          @if (a.source === 'Added by you') {
+          @if (a.custom) {
             <button type="button" class="ghost" (click)="removeCustomAbility(a.name)">
               Remove
             </button>
@@ -356,6 +382,100 @@
       }
     </ul>
   }
+</section>
+
+<section class="panel build">
+  @let build = finalBuild();
+  <h2>Final build</h2>
+  <p class="muted">Lv {{ build.level }} {{ build.className }}</p>
+
+  <div class="ability-line">
+    <span class="muted">Equipped ({{ finalEquipped().length }}/{{ abilitySlots() }}):</span>
+    @for (a of learnedAbilities(); track a.name) {
+      <button
+        type="button"
+        class="chip"
+        [class.on]="finalEquipped().includes(a.name)"
+        [attr.aria-pressed]="finalEquipped().includes(a.name)"
+        [title]="a.effect ?? a.source"
+        (click)="toggleFinalEquip(a.name)"
+      >
+        {{ a.name }}
+      </button>
+    } @empty {
+      <span class="muted">nothing learned by the end of the route yet</span>
+    }
+    @if (abilitySteps().length) {
+      <button type="button" class="ghost" (click)="copyLastStepEquips()">
+        Use the last step's equips
+      </button>
+    }
+  </div>
+  @if (finalEquipped().length > abilitySlots()) {
+    <p class="warning">
+      {{ finalEquipped().length }} abilities equipped but only {{ abilitySlots() }} slots.
+    </p>
+  }
+  <p class="always-on">
+    <span class="muted">Always on:</span>
+    {{ build.innate.length ? build.innate.join(', ') : 'none' }}
+  </p>
+
+  <div class="scroll">
+    <table class="stats">
+      <thead>
+        <tr>
+          <th></th>
+          @for (key of statKeys; track key) {
+            <th>{{ labels[key] }}</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>Grown stats</th>
+          @for (key of statKeys; track key) {
+            <td>{{ build.grown[key] | number: '1.0-1' }}</td>
+          }
+        </tr>
+        <tr>
+          <th>{{ build.className }} bonus</th>
+          @for (key of statKeys; track key) {
+            <td class="muted">{{ signed(build.classBonus?.[key] ?? 0) }}</td>
+          }
+        </tr>
+        <tr>
+          <th>Ability bonus</th>
+          @for (key of statKeys; track key) {
+            <td class="muted">{{ signed(build.abilities.stats[key]) }}</td>
+          }
+        </tr>
+        <tr class="in-game">
+          <th>Final</th>
+          @for (key of statKeys; track key) {
+            <td [title]="build.capped.includes(key) ? 'Held to the cap' : ''">
+              {{ build.final[key] | number: '1.0-1' }}{{ build.capped.includes(key) ? '*' : '' }}
+            </td>
+          }
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  @if (build.other.length) {
+    <p><span class="muted">Also always on:</span> {{ build.other.join(', ') }}</p>
+  }
+  <p class="hint">
+    Final = grown stats + the {{ build.className }} class bonus + ability bonuses, held to your caps
+    (marked *).
+    @if (build.abilities.sources.length) {
+      Ability bonuses come from {{ build.abilities.sources.join(', ') }}.
+    }
+    Only effects that always apply are counted; ones that depend on a weapon, combat, a trigger or
+    allies aren't, since they don't show on the stat screen.
+    @if (!build.classBonus) {
+      This class's stat bonuses aren't documented, so they count as +0.
+    }
+  </p>
 </section>
 
 @if (inspected(); as info) {

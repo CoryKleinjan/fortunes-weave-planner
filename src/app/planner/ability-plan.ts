@@ -7,6 +7,8 @@ export interface CustomAbility {
   effect: string;
   /** Level at which the unit gains it. */
   level: number;
+  /** How it's gained, for abilities picked from the game's list. */
+  source?: string;
 }
 
 /** Slot count isn't documented anywhere yet, so the planner defaults to this. */
@@ -17,6 +19,8 @@ export interface LearnedAbility {
   effect: string | null;
   source: string;
   level: number;
+  /** Added by the user, so it can be removed. */
+  custom?: boolean;
 }
 
 export interface AbilityStep {
@@ -62,8 +66,9 @@ export function planAbilities(
   const customAbility = (c: CustomAbility): LearnedAbility => ({
     name: c.name,
     effect: c.effect || null,
-    source: 'Added by you',
+    source: c.source ?? 'Added by you',
     level: c.level,
+    custom: true,
   });
   while (pending.length && pending[0].level <= startLevel)
     learn(customAbility(pending.shift()!), []);
