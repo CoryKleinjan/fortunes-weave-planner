@@ -3,27 +3,32 @@
 @let unitDetails = store.details();
 
 <section class="panel unit">
-  <h2>Unit</h2>
-  <label class="field">
-    <span>Character</span>
-    <select [value]="unit.name" (change)="selectUnit($any($event.target).value)">
-      @for (group of factions(); track group.faction) {
-        <optgroup [label]="group.faction">
-          @for (name of group.names; track name) {
-            <option [value]="name" [selected]="name === unit.name">
-              {{ name }}{{ store.plannedUnits().includes(name) ? ' •' : '' }}
-            </option>
+  <div class="unit-head">
+    <app-unit-portrait [name]="unit.name" [faction]="unit.faction" />
+    <div class="unit-pick">
+      <h2>Unit</h2>
+      <label class="field">
+        <span>Character</span>
+        <select [value]="unit.name" (change)="selectUnit($any($event.target).value)">
+          @for (group of factions(); track group.faction) {
+            <optgroup [label]="group.faction">
+              @for (name of group.names; track name) {
+                <option [value]="name" [selected]="name === unit.name">
+                  {{ name }}{{ store.plannedUnits().includes(name) ? ' •' : '' }}
+                </option>
+              }
+            </optgroup>
           }
-        </optgroup>
-      }
-    </select>
-  </label>
-  <p class="muted">
-    {{ unit.faction }}
-    @if (unitDetails?.startingClass) {
-      · joins as {{ unitDetails!.startingClass }}
-    }
-  </p>
+        </select>
+      </label>
+      <p class="muted">
+        {{ unit.faction }}
+        @if (unitDetails?.startingClass) {
+          · joins as {{ unitDetails!.startingClass }}
+        }
+      </p>
+    </div>
+  </div>
   @if (unitDetails) {
     <p class="ability">
       <strong>{{ unitDetails.personalAbility.name }}</strong>

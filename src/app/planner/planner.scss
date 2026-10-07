@@ -290,3 +290,14 @@ button.link {
 .mastery > * + * {
   margin-left: 0.35em;
 }
+
+.unit-head {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.unit-pick {
+  flex: 1;
+  min-width: 0;
+}
