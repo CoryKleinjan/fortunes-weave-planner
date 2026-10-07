@@ -1,6 +1,8 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
-import { ClassTier, STAT_KEYS, STAT_LABELS, StatKey, TIERS } from '../data/models';
+import { abilityEffect } from '../data/abilities';
+import { ClassTier, ClassWeapon, STAT_KEYS, STAT_LABELS, StatKey, TIERS } from '../data/models';
+import { classWarnings, statsInClass, suitsAptitudes } from './class-checks';
 import { effectiveGrowths, focusScore } from './growth';
 import { PlannerStore } from './planner-store';
 
@@ -40,7 +42,12 @@ export class Planner {
       .filter((c) => tier === 'all' || c.tier === tier)
       .map((c) => {
         const growths = effectiveGrowths(personal, c);
-        return { gameClass: c, growths, score: focusScore(growths, focus) };
+        return {
+          gameClass: c,
+          growths,
+          score: focusScore(growths, focus),
+          suits: suitsAptitudes(this.store.details(), this.store.classDetails[c.name]),
+        };
       })
       .sort((a, b) => b.score - a.score);
   });
@@ -49,6 +56,47 @@ export class Planner {
     const steps = this.store.projection();
     return steps.length ? steps[steps.length - 1].endLevel : this.store.plan().startLevel;
   });
+
+  /** Warnings for each route step, by step index. */
+  protected readonly stepWarnings = computed(() => {
+    const plan = this.store.plan();
+    const name = this.store.character().name;
+    const unit = this.store.details();
+    let level = plan.startLevel;
+    return plan.route.map((step, i) => {
+      // A unit already in its joining class never sits that class's exam.
+      const joined = i === 0 && step.className === unit?.startingClass;
+      const warnings = joined
+        ? []
+        : classWarnings(name, unit, step.className, this.store.classDetails[step.className], level);
+      level += Math.max(0, step.levels);
+      return warnings;
+    });
+  });
+
+  /** Final projected stats as shown in the last class: class bonuses added, caps applied. */
+  protected readonly inGame = computed(() => {
+    const steps = this.store.projection();
+    const last = steps[steps.length - 1];
+    if (!last) return null;
+    const details = this.store.classDetails[last.gameClass.name];
+    return {
+      className: last.gameClass.name,
+      bonusesKnown: !!details?.baseBonuses,
+      stats: statsInClass(last.totals, details, this.store.plan().caps ?? {}),
+    };
+  });
+
+  /** The class in the details panel: the one the user picked, else the route's last. */
+  protected readonly inspected = computed(() => {
+    const route = this.store.plan().route;
+    const name = this.store.inspectedClass() ?? route[route.length - 1]?.className ?? 'Commoner';
+    const gameClass = this.store.classByName.get(name);
+    if (!gameClass) return null;
+    return { gameClass, details: this.store.classDetails[name] };
+  });
+
+  protected readonly abilityEffect = abilityEffect;
 
   protected selectUnit(name: string): void {
     this.store.selectedName.set(name);
@@ -63,6 +111,34 @@ export class Planner {
       p.startStats[key] = toInt(value, 0);
       return p;
     });
+  }
+
+  protected setCap(key: StatKey, value: string): void {
+    this.store.updatePlan((p) => {
+      const caps = { ...p.caps };
+      const n = Number.parseInt(value, 10);
+      if (Number.isFinite(n) && n > 0) caps[key] = n;
+      else delete caps[key];
+      return { ...p, caps };
+    });
+  }
+
+  protected useJoinStats(): void {
+    const bases = this.store.details()?.bases;
+    if (!bases) return;
+    this.store.updatePlan((p) => ({ ...p, startStats: { ...bases } }));
+  }
+
+  protected inspect(className: string): void {
+    this.store.inspectedClass.set(className);
+    // Wait for the panel to render, then bring it into view.
+    setTimeout(() =>
+      document.getElementById('class-details')?.scrollIntoView({ behavior: 'smooth' }),
+    );
+  }
+
+  protected weaponLabel(weapon: ClassWeapon): string {
+    return weapon.rank ? `${weapon.type} ${weapon.rank}` : weapon.type;
   }
 
   protected setStepClass(index: number, className: string): void {

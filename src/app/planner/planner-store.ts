@@ -1,13 +1,18 @@
 import { Injectable, computed, effect, signal } from '@angular/core';
+import { CHARACTER_DETAILS } from '../data/character-details';
 import { CHARACTERS } from '../data/characters';
+import { CLASS_DETAILS } from '../data/class-details';
 import { CLASSES } from '../data/classes';
 import { StatKey, Stats, emptyStats } from '../data/models';
+import { StatCaps } from './class-checks';
 import { RouteStep, projectRoute } from './growth';
 
 export interface UnitPlan {
   startLevel: number;
   startStats: Stats;
   route: RouteStep[];
+  /** Caps the user entered; plans saved before caps existed lack this. */
+  caps?: StatCaps;
 }
 
 const STORAGE_KEY = 'fw-planner.v1';
@@ -18,8 +23,15 @@ interface SavedState {
   plans: Record<string, UnitPlan>;
 }
 
-function defaultPlan(): UnitPlan {
-  return { startLevel: 1, startStats: emptyStats(), route: [{ className: 'Commoner', levels: 4 }] };
+/** A fresh plan starts from the unit's documented join stats and class when known. */
+function defaultPlan(name: string): UnitPlan {
+  const details = CHARACTER_DETAILS[name];
+  return {
+    startLevel: 1,
+    startStats: details?.bases ? { ...details.bases } : emptyStats(),
+    route: [{ className: details?.startingClass ?? 'Commoner', levels: 4 }],
+    caps: {},
+  };
 }
 
 function load(): SavedState | null {
@@ -37,6 +49,8 @@ export class PlannerStore {
   readonly characters = CHARACTERS;
   readonly classes = CLASSES;
   readonly classByName = new Map(CLASSES.map((c) => [c.name, c]));
+  readonly classDetails = CLASS_DETAILS;
+  readonly characterDetails = CHARACTER_DETAILS;
 
   private readonly saved = load();
 
@@ -47,7 +61,13 @@ export class PlannerStore {
   readonly character = computed(
     () => this.characters.find((c) => c.name === this.selectedName()) ?? this.characters[0],
   );
-  readonly plan = computed(() => this.plans()[this.character().name] ?? defaultPlan());
+  readonly details = computed(() => CHARACTER_DETAILS[this.character().name]);
+  readonly plan = computed(() => {
+    const name = this.character().name;
+    return this.plans()[name] ?? defaultPlan(name);
+  });
+  /** Class shown in the class details panel. */
+  readonly inspectedClass = signal<string | null>(null);
   readonly projection = computed(() => {
     const plan = this.plan();
     return projectRoute(
@@ -81,6 +101,7 @@ export class PlannerStore {
     const next = change({
       ...current,
       startStats: { ...current.startStats },
+      caps: { ...current.caps },
       route: current.route.map((s) => ({ ...s })),
     });
     this.plans.update((plans) => ({ ...plans, [name]: next }));
