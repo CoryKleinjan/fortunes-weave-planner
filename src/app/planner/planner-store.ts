@@ -71,8 +71,6 @@ export class PlannerStore {
     const name = this.character().name;
     return this.plans()[name] ?? defaultPlan(name);
   });
-  /** Class shown in the class details panel. */
-  readonly inspectedClass = signal<string | null>(null);
   readonly projection = computed(() => {
     const plan = this.plan();
     return projectRoute(

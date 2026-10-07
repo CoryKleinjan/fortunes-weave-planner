@@ -7,14 +7,13 @@
     'unit route'
     'projection projection'
     'abilities abilities'
-    'details details'
     'fit fit';
 }
 
 @media (max-width: 1100px) {
   :host {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'unit' 'route' 'projection' 'abilities' 'details' 'fit';
+    grid-template-areas: 'unit' 'route' 'projection' 'abilities' 'fit';
   }
 }
 
@@ -29,9 +28,6 @@
 }
 .fit {
   grid-area: fit;
-}
-.details {
-  grid-area: details;
 }
 .abilities {
   grid-area: abilities;
@@ -170,8 +166,7 @@
   margin: 8px 0 4px;
 }
 
-.aptitudes,
-.facts {
+.aptitudes {
   display: grid;
   grid-template-columns: max-content 1fr;
   gap: 2px 12px;
@@ -218,15 +213,6 @@ h3 {
   border: 1px solid var(--accent);
   color: var(--accent);
   margin-left: 4px;
-}
-
-button.link {
-  border: none;
-  background: none;
-  padding: 0;
-  text-align: left;
-  color: inherit;
-  text-decoration: underline dotted;
 }
 
 .slots {

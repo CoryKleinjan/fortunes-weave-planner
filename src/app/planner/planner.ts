@@ -7,7 +7,7 @@ import {
   catalogAbility,
   uniqueAbilitiesFor,
 } from '../data/ability-catalog';
-import { ClassTier, ClassWeapon, STAT_KEYS, STAT_LABELS, StatKey, TIERS } from '../data/models';
+import { ClassTier, STAT_KEYS, STAT_LABELS, StatKey, TIERS } from '../data/models';
 import { DEFAULT_ABILITY_SLOTS, planAbilities } from './ability-plan';
 import { classWarnings, statsInClass, suitsAptitudes } from './class-checks';
 import { effectiveGrowths, focusScore } from './growth';
@@ -95,15 +95,6 @@ export class Planner {
     };
   });
 
-  /** The class in the details panel: the one the user picked, else the route's last. */
-  protected readonly inspected = computed(() => {
-    const route = this.store.plan().route;
-    const name = this.store.inspectedClass() ?? route[route.length - 1]?.className ?? 'Commoner';
-    const gameClass = this.store.classByName.get(name);
-    if (!gameClass) return null;
-    return { gameClass, details: this.store.classDetails[name] };
-  });
-
   protected readonly abilityEffect = abilityEffect;
 
   protected readonly abilitySlots = computed(
@@ -165,18 +156,6 @@ export class Planner {
       else delete caps[key];
       return { ...p, caps };
     });
-  }
-
-  protected inspect(className: string): void {
-    this.store.inspectedClass.set(className);
-    // Wait for the panel to render, then bring it into view.
-    setTimeout(() =>
-      document.getElementById('class-details')?.scrollIntoView({ behavior: 'smooth' }),
-    );
-  }
-
-  protected weaponLabel(weapon: ClassWeapon): string {
-    return weapon.rank ? `${weapon.type} ${weapon.rank}` : weapon.type;
   }
 
   protected toggleMastered(index: number): void {
