@@ -13,6 +13,8 @@ An Angular app for planning units in _Fire Emblem: Fortune's Weave_: pick a char
 - Route warnings when a step is below the exam's recommended level, needs a skill the unit is weak in, or breaks a personal restriction (e.g. Goliath can't ride).
 - Projected stats as shown in-game: the final class's stat bonuses added and any stat caps applied.
 - Unit pictures: the selected unit shows its in-game portrait, loaded from [fortunesweave.co.uk](https://fortunesweave.co.uk/characters/) (not bundled, so it needs a connection), or a picture you upload instead (scaled down and kept in the browser). If the portrait can't load, an initials badge in the faction's colour shows.
+- Add abilities from the game's list: each unit's unique abilities (personal ability upgrades and Diadems) and skill abilities (weapon ranks and mount bonds), or type in any other.
+- Final build: pick the abilities equipped at the end of the route and see the full stat set with grown stats, the class's stat bonuses, always-on ability bonuses and caps applied.
 - Plans are saved per unit in the browser (localStorage).
 
 ## How the numbers work
@@ -28,7 +30,7 @@ No source documents stat caps yet, so the planner applies only caps you enter pe
 All data is in `src/app/data/`:
 
 - Growth rates (`characters.ts`, `classes.ts`): [KeenGamer's growth-rate guide](https://www.keengamer.com/articles/guides/fire-emblem-fortunes-weave-growth-rates-for-all-characters-and-classes/) (2026-09-28).
-- Class weapons, skills, unlocks and stat bonuses (`class-details.ts`, `abilities.ts`) and unit abilities, aptitudes and join stats (`character-details.ts`): [fortunesweave.co.uk](https://fortunesweave.co.uk/classes/) (checked 2026-10-07).
+- Class weapons, skills, unlocks and stat bonuses (`class-details.ts`, `abilities.ts`), unique and skill abilities (`ability-catalog.ts`) and unit abilities, aptitudes and join stats (`character-details.ts`): [fortunesweave.co.uk](https://fortunesweave.co.uk/classes/) (checked 2026-10-07).
 
 Gaps: stat caps (all classes), join stats for most units, join levels, flat stat bonuses for 15 classes, and Tobias's details. These were read through a page summarizer, so spot-check against the game.
 

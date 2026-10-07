@@ -18,6 +18,8 @@ export interface UnitPlan {
   customAbilities?: CustomAbility[];
   /** Ability equip slots; undocumented in the game guides, so the user can change it. */
   abilitySlots?: number;
+  /** Abilities equipped in the final build, at the end of the route. */
+  finalEquipped?: string[];
 }
 
 const STORAGE_KEY = 'fw-planner.v1';
