@@ -4,6 +4,7 @@
   // The unit panel's stat table needs more room than the route list.
   grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
   grid-template-areas:
+    'recruited recruited'
     'unit route'
     'projection projection'
     'abilities abilities'
@@ -13,12 +14,15 @@
 @media (max-width: 1100px) {
   :host {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'unit' 'route' 'projection' 'abilities' 'fit';
+    grid-template-areas: 'recruited' 'unit' 'route' 'projection' 'abilities' 'fit';
   }
 }
 
 .unit {
   grid-area: unit;
+}
+.recruited {
+  grid-area: recruited;
 }
 .route {
   grid-area: route;
@@ -286,4 +290,30 @@ h3 {
 .unit-pick {
   flex: 1;
   min-width: 0;
+}
+
+.roster {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.recruit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 4px 4px;
+  text-align: left;
+  > span {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.85rem;
+  }
+  &.on {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
 }
