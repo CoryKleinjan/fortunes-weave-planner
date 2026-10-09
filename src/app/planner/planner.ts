@@ -11,6 +11,7 @@ import { ClassTier, STAT_KEYS, STAT_LABELS, StatKey, TIERS } from '../data/model
 import { DEFAULT_ABILITY_SLOTS, planAbilities } from './ability-plan';
 import { classWarnings, statsInClass, suitsAptitudes } from './class-checks';
 import { effectiveGrowths, focusScore } from './growth';
+import { OPTIMAL_TARGET_LEVEL, optimalPath } from './optimal-path';
 import { UnitPortrait } from '../portrait/unit-portrait';
 import { PlannerStore } from './planner-store';
 
@@ -167,6 +168,42 @@ export class Planner {
     if (!query || all.some((o) => o.name.toLowerCase() === query)) return all;
     return all.filter((o) => o.name.toLowerCase().includes(query));
   });
+
+  /** What the last Optimal path click did, shown under the button for that unit. */
+  protected readonly optimalNote = signal<{ unit: string; text: string } | null>(null);
+  protected readonly optimalTarget = OPTIMAL_TARGET_LEVEL;
+
+  /** Replaces the class route with the estimated strongest route to level 50. */
+  protected applyOptimalPath(): void {
+    const unit = this.store.character();
+    const plan = this.store.plan();
+    const result = optimalPath({
+      unitName: unit.name,
+      unit: this.store.details(),
+      personal: unit.growths,
+      startLevel: plan.startLevel,
+      classes: this.store.classes,
+      classDetails: this.store.classDetails,
+    });
+    if (!result.route.length) {
+      this.optimalNote.set({
+        unit: unit.name,
+        text: `${unit.name} is already level ${OPTIMAL_TARGET_LEVEL}, so there's nothing to plan.`,
+      });
+      return;
+    }
+    const replacing =
+      plan.route.length > 1 || plan.route.some((s) => s.mastered || s.equipped?.length);
+    if (replacing && !confirm(`Replace ${unit.name}'s class route with the optimal path?`)) return;
+    this.store.updatePlan((p) => ({ ...p, route: result.route }));
+    const stats = result.stats.map((key) => STAT_LABELS[key]).join(', ');
+    this.optimalNote.set({
+      unit: unit.name,
+      text:
+        `Estimated best route to Lv ${OPTIMAL_TARGET_LEVEL}: about +${result.gain.toFixed(0)} ` +
+        `combined ${stats} by the end, counting the last class's stat bonuses.`,
+    });
+  }
 
   protected selectUnit(name: string): void {
     this.store.selectedName.set(name);

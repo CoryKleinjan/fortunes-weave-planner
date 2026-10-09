@@ -15,6 +15,7 @@ An Angular app for planning units in _Fire Emblem: Fortune's Weave_: pick a char
 - Projected stats as shown in-game: the final class's stat bonuses added and any stat caps applied.
 - Add abilities from the game's list: each unit's unique abilities (personal ability upgrades and Diadems) and skill abilities (weapon ranks and mount bonds), picked from the same box you type a name in, or type in any other.
 - Recruited units: every unit you've edited or ticked as Recruited is listed at the top with its picture, level and class; click one to switch to it. Unticking Recruited hides a unit but keeps its plan; "Reset unit" clears both.
+- Optimal path: one click sets the class route that gives the most expected HP, attack stat (Str or Mag, whichever the unit grows faster), Spd, Dex, Def and Res by level 50, counting the last class's stat bonuses. It only uses regular exam classes from their recommended level and skips route-only, female-only and unique-item classes and any class needing a skill the unit is weak in. It's an estimate: weapon ranks for exams aren't planned.
 - Plans are saved per unit in the browser (localStorage).
 
 ## How the numbers work
