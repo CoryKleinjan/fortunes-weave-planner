@@ -61,6 +61,7 @@
         />
         Recruited
       </label>
+      <button type="button" class="optimal" (click)="applyOptimalPath()">Optimal path</button>
       <p class="muted">
         {{ unit.faction }}
         @if (unitDetails?.startingClass) {
@@ -69,6 +70,15 @@
       </p>
     </div>
   </div>
+  @if (optimalNote(); as note) {
+    @if (note.unit === unit.name) {
+      <p class="hint optimal-note">
+        {{ note.text }} This is an estimate from the planner's growth data. It skips route-only,
+        female-only and unique-item classes and any class needing a skill {{ unit.name }} is weak
+        in, and it doesn't plan weapon ranks for exams.
+      </p>
+    }
+  }
   @if (unitDetails) {
     <p class="ability">
       <strong>{{ unitDetails.personalAbility.name }}</strong>
